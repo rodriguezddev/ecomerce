@@ -1,0 +1,375 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { paymentService } from "@/services/api-extensions";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Eye, Trash2, Edit, Search, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Input } from "@/components/ui/input";
+import { formatDate } from "@/lib/utils";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+// Mapeo de tipos de pago para mostrar nombres más amigables
+const paymentTypes = [
+  { value: "all", label: "Todos los métodos" },
+  { value: "TRANSFERENCIA", label: "Transferencia" },
+  { value: "PAGOMOVIL", label: "Pago Móvil" },
+  { value: "ZELLE", label: "Zelle" },
+  { value: "EFECTIVO", label: "Efectivo" },
+];
+
+export default function PaymentList() {
+  const { toast } = useToast();
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [paymentFilter, setPaymentFilter] = useState("all");
+  const [paymentToDelete, setPaymentToDelete] = useState<{
+    pedidoId: number;
+    id: number;
+  } | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const {
+    data: payments = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["payments"],
+    queryFn: async () => {
+      const response = await paymentService.getPayments();
+      return response || [];
+    },
+  });
+
+  const confirmDelete = (pedidoId: number, id: number) => {
+    setPaymentToDelete({ pedidoId, id });
+    setIsDeleteDialogOpen(true);
+  };
+
+  const executeDelete = async () => {
+    if (!paymentToDelete) return;
+    try {
+      setIsDeleting(true);
+      await paymentService.deletePayment(paymentToDelete.pedidoId, paymentToDelete.id);
+      toast({
+        title: "Pago eliminado",
+        description: "El pago ha sido eliminado correctamente",
+      });
+      refetch();
+      // Adjust current page if deleting the last item on the page
+      if (paginatedPayments.length === 1 && currentPage > 1) {
+        setCurrentPage(currentPage - 1);
+      }
+    } catch (error) {
+      console.error("Error al eliminar pago:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el pago",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setPaymentToDelete(null);
+      setIsDeleteDialogOpen(false);
+    }
+  };
+
+  const handleViewImage = (imageName: string | null) => {
+    if (imageName) {
+      setSelectedImage(imageName);
+      setIsModalOpen(true);
+    }
+  };
+
+  const filteredPayments = payments?.filter((payment: any) => {
+    // Filtro por tipo de pago
+    if (paymentFilter !== "all" && payment.nombreFormaDePago !== paymentFilter) {
+      return false;
+    }
+    
+    // Filtro por término de búsqueda
+    if (!searchTerm) return true;
+    
+    const lowerSearchTerm = searchTerm.toLowerCase();
+    const refMatch = payment.numeroReferencia
+      ?.toLowerCase()
+      .includes(lowerSearchTerm);
+    const dateMatch =
+      payment.fecha &&
+      formatDate(new Date(payment.fecha)).toLowerCase().includes(lowerSearchTerm);
+    return refMatch || dateMatch;
+  });
+
+  // Pagination logic
+  const totalItems = filteredPayments?.length || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedPayments = filteredPayments?.slice(startIndex, endIndex) || [];
+
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1); // Reset to first page when changing items per page
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p>Cargando pagos...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <p className="text-red-500">Error al cargar los pagos</p>
+        <Button onClick={() => refetch()} variant="outline" className="mt-2">
+          Reintentar
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Gestión de Pagos</h1>
+        <div className="grid gap-2 md:grid-cols-2 grid-cols-1 relative">
+          <div className="relative w-48">
+            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar por referencia o fecha..."
+              className="pl-8"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1); // Reset to first page when searching
+              }}
+            />
+          </div>
+          <Select value={paymentFilter} onValueChange={(value) => {
+            setPaymentFilter(value);
+            setCurrentPage(1); // Reset to first page when changing filter
+          }}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filtrar por método" />
+            </SelectTrigger>
+            <SelectContent>
+              {paymentTypes.map((type) => (
+                <SelectItem key={type.value} value={type.value}>
+                  {type.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <Card>
+        <CardContent>
+          {filteredPayments.length === 0 ? (
+            <div className="text-center py-4">
+              <p className="text-muted-foreground">No hay pagos disponibles</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Número Referencia</TableHead>
+
+                    <TableHead>Pedido</TableHead>
+                    <TableHead>Forma de Pago</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {paginatedPayments.map((payment: any) => {
+                    const pedidoId =
+                      typeof payment.pedido === "object"
+                        ? payment.pedido.id
+                        : payment.pedido;
+
+                    return (
+                      <TableRow key={payment.id}>
+                        <TableCell className="font-medium">
+                          <TableCell>{payment.numeroReferencia}</TableCell>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">#{pedidoId}</Badge>
+                        </TableCell>
+                        <TableCell>{payment.nombreFormaDePago == 'PAGOMOVIL' ? 'PAGO MOVIL' : payment.nombreFormaDePago}</TableCell>
+                        
+                        <TableCell>
+                          {payment.fecha ? formatDate(new Date(payment.fecha)) : 'N/A'}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() =>
+                                handleViewImage(payment.comprobanteDePago)
+                              }
+                              disabled={!payment.comprobanteDePago}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="icon" asChild>
+                              <Link to={`/dashboard/pagos/editar/${payment.numeroReferencia}`}>
+                                <Edit className="h-4 w-4" />
+                              </Link>
+                            </Button>
+                            <AlertDialog open={isDeleteDialogOpen && paymentToDelete?.id === payment.id} onOpenChange={setIsDeleteDialogOpen}>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() =>
+                                    confirmDelete(pedidoId, payment.id)
+                                  }
+                                  disabled={isDeleting}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    ¿Estás absolutamente seguro?
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. Esto eliminará permanentemente el pago de nuestros servidores.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction onClick={executeDelete}>Continuar</AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+
+              {/* Pagination controls */}
+              {totalItems > 0 && (
+                <div className="flex items-center justify-between px-4 py-2 border-t">
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm text-muted-foreground">
+                      Mostrando {startIndex + 1}-{Math.min(endIndex, totalItems)} de {totalItems} pagos
+                    </p>
+                    <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                      <SelectTrigger className="h-8 w-[70px]">
+                        <SelectValue placeholder={itemsPerPage} />
+                      </SelectTrigger>
+                      <SelectContent side="top">
+                        {[10, 20, 30, 40, 50].map((size) => (
+                          <SelectItem key={size} value={size.toString()}>
+                            {size}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      onClick={() => handlePageChange(1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronsLeft className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      onClick={() => handlePageChange(currentPage - 1)}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4" />
+                    </Button>
+                    <span className="text-sm font-medium">
+                      Página {currentPage} de {totalPages}
+                    </span>
+                    <Button
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      onClick={() => handlePageChange(currentPage + 1)}
+                      disabled={currentPage === totalPages || totalPages === 0}
+                    >
+                      <ChevronRight className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="h-8 w-8 p-0"
+                      onClick={() => handlePageChange(totalPages)}
+                      disabled={currentPage === totalPages || totalPages === 0}
+                    >
+                      <ChevronsRight className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Comprobante de Pago</DialogTitle>
+          </DialogHeader>
+          {selectedImage && (
+            <img
+              src={`${import.meta.env.VITE_API_URL}imagenes/${selectedImage}`}
+              alt="Comprobante de pago"
+              className="w-full h-auto object-contain rounded-md mt-4"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
