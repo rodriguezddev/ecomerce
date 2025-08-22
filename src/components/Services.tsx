@@ -6,31 +6,27 @@ const services = [
     id: 1,
     icon: Headset,
     title: "Asesoramiento",
-    description: "Para pedidos mayores a $50",
   },
   {
     id: 2,
     icon: Banknote,
     title: "Aceptamos pago móvil y zelle",
-    description: "Llámanos en cualquier momento",
   },
   {
     id: 3,
     icon: Truck,
     title: "Envío a todo el país",
-    description: "Pagos totalmente seguros",
   },
   {
     id: 4,
     icon: PackageCheck,
     title: "Delivery en la ciudad",
-    description: "Descuentos de hasta 90%",
   },
 ];
 
 const Services = () => {
   return (
-    <section className="mb-12 mt-16">
+    <section className="mb-12">
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {services.map((service) => (
           <div
