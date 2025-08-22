@@ -70,12 +70,7 @@ export default function ShipmentDetail() {
           <h1 className="text-3xl font-bold">Detalles del Envío #{shipment.id}</h1>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={handlePrint}>
-            <Printer className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon" onClick={handleDownload}>
-            <Download className="h-4 w-4" />
-          </Button>
+
           <Button asChild>
             <Link to={`/dashboard/envios/editar/${shipment.id}`}>
               <Edit className="mr-2 h-4 w-4" />
