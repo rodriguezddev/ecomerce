@@ -281,16 +281,16 @@ const Orders = () => {
                                                         variant="outline"
                                                         onClick={() => handleViewOrderDetails(order.id)}
                                                     >
-                                                        Ver detalles
+                                                        Visualizar pedido
                                                     </Button>
-                                                    {order.factura && (
+                                                    {(order.factura && order.estado !== "Pedido en verificacion de pago") && (
                                                         <Button
                                                             size="sm"
                                                             variant="outline"
                                                             asChild
                                                         >
                                                             <Link to={`/recibo/${order.factura.id}`}>
-                                                                Descargar factura
+                                                                Descargar recibo
                                                             </Link>
                                                         </Button>
                                                     )}
