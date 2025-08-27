@@ -43,10 +43,10 @@ export default function ReportsPanel() {
       // Preparar el objeto dateRange para los reportes
       const formattedDateRange = {
         fromDay: startDate?.getDate() || new Date().getDate(),
-        fromMonth: startDate ? startDate.getMonth() + 1 : new Date().getMonth() + 1,
+        fromMonth: startDate ? startDate.getMonth() : new Date().getMonth(),
         fromYear: startDate?.getFullYear() || new Date().getFullYear(),
         untilDay: endDate?.getDate() || new Date().getDate(),
-        untilMonth: endDate ? endDate.getMonth() + 1 : new Date().getMonth() + 1,
+        untilMonth: endDate ? endDate.getMonth() : new Date().getMonth(),
         untilYear: endDate?.getFullYear() || new Date().getFullYear()
       };
       
