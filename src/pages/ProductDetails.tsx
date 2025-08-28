@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { ChevronRight, Star, Minus, Plus, ShoppingCart, Heart, BarChart2, Truck, ArrowLeft } from "lucide-react";
+import { ChevronRight, Star, Minus, Plus, ShoppingCart, Heart, BarChart2, Truck, ArrowLeft, Badge } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
@@ -202,8 +202,8 @@ const ProductDetails = () => {
               )}
             </div>
 
-            <div className="border-t border-gray-200 pt-6 mb-6">
-              <p className="text-gray-600 mb-6">
+            <div className="border-t border-gray-200 pt-2 mb-2">
+              <p className="text-gray-600 mb-2">
                 {product.descripcion || "Sin descripción disponible."}
               </p>
 
@@ -216,7 +216,7 @@ const ProductDetails = () => {
 
             {/* Quantity selector */}
             <div className="flex items-center mb-6">
-              <span className="mr-4 text-gray-700 font-medium">Quantity:</span>
+              <span className="mr-4 text-gray-700 font-medium">Cantidad:</span>
               <div className="flex items-center border border-gray-300 rounded-md">
                 <button
                   className="px-3 py-2 text-gray-600 hover:bg-gray-100 transition-colors"
@@ -246,117 +246,17 @@ const ProductDetails = () => {
                 <ShoppingCart size={18} className="mr-2" />
                 Add to Cart
               </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-full"
-              >
-                <Heart size={18} />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon"
-                className="rounded-full"
-              >
-                <BarChart2 size={18} />
-              </Button>
+             
             </div>
 
-            {/* Shipping info */}
-            <div className="bg-gray-50 p-4 rounded-lg">
-              <div className="flex items-start">
-                <Truck className="text-primary mr-3 mt-1" size={20} />
-                <div>
-                  <p className="text-sm font-medium">Envíos Gratis</p>
-                  <p className="text-sm text-gray-600">Delivery within 3-5 working days</p>
-                </div>
-              </div>
-            </div>
+          
           </div>
         </div>
 
-        {/* Product tabs */}
-        <Tabs defaultValue="description" className="mb-12">
-          <TabsList className="w-full justify-start border-b rounded-none bg-transparent h-auto p-0">
-            <TabsTrigger
-              value="description"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary text-base py-3 px-6 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-            >
-              Descripción
-            </TabsTrigger>
-            <TabsTrigger
-              value="specifications"
-              className="rounded-none border-b-2 border-transparent data-[state=active]:border-primary text-base py-3 px-6 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-            >
-              Especificaciones
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="description" className="mt-6">
-            <div className="prose max-w-none">
-              <p>
-                The {productName} is designed to meet or exceed OEM specifications, ensuring a perfect fit and optimal performance for your vehicle.
-                Made from high-quality materials, this component is built to withstand the demands of daily use and provide reliable operation over time.
-              </p>
-              <p className="mt-4">
-                Our engineering team has carefully designed this product to address common issues found in factory parts,
-                resulting in improved durability and performance. Each unit undergoes rigorous testing and quality control
-                to ensure it meets our strict standards before shipping.
-              </p>
-              <h3 className="text-xl font-semibold mt-6 mb-3">Features:</h3>
-              <ul className="list-disc pl-5 space-y-2">
-                <li>Direct replacement for factory part</li>
-                <li>Easy installation with standard tools</li>
-                <li>Premium materials for enhanced durability</li>
-                <li>Engineered to OEM specifications</li>
-                <li>Tested for reliability and performance</li>
-              </ul>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="specifications" className="mt-6">
-            <div className="grid md:grid-cols-2 gap-8">
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Technical Specifications</h3>
-                <table className="w-full border-collapse">
-                  <tbody>
-                    <tr className="border-b border-gray-200">
-                      <td className="py-3 text-gray-600">Brand</td>
-                      <td className="py-3 font-medium">Brandix</td>
-                    </tr>
-                    <tr className="border-b border-gray-200">
-                      <td className="py-3 text-gray-600">SKU</td>
-                      <td className="py-3 font-medium">BDX-{product.id}00{product.id}</td>
-                    </tr>
-                    <tr className="border-b border-gray-200">
-                      <td className="py-3 text-gray-600">Weight</td>
-                      <td className="py-3 font-medium">{(Math.random() * 10 + 1).toFixed(2)} kg</td>
-                    </tr>
-                    <tr className="border-b border-gray-200">
-                      <td className="py-3 text-gray-600">Dimensions</td>
-                      <td className="py-3 font-medium">{Math.floor(Math.random() * 30 + 10)}×{Math.floor(Math.random() * 20 + 5)}×{Math.floor(Math.random() * 15 + 5)} cm</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-4">Compatibility</h3>
-                <p className="mb-4 text-gray-600">This product is compatible with the following vehicle models:</p>
-                <ul className="space-y-1 text-gray-600">
-                  <li>• Toyota Camry (2018-2023)</li>
-                  <li>• Toyota Corolla (2019-2023)</li>
-                  <li>• Toyota RAV4 (2018-2022)</li>
-                  <li>• Lexus ES (2018-2022)</li>
-                  <li>• Lexus RX (2016-2022)</li>
-                </ul>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
 
         {/* Related products section */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Related Products</h2>
+          <h2 className="text-2xl font-bold mb-6">Productos relacionados</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {relatedProducts.length > 0 ?
               relatedProducts.map((relatedProduct) => (
@@ -368,30 +268,45 @@ const ProductDetails = () => {
                       className="w-full h-full object-cover transition-transform hover:scale-105"
                     />
                   </Link>
+                  {!relatedProduct.disponible && (
+                            <div className="absolute top-3 left-3 bg-gray-600 text-white text-xs font-medium px-2 py-1 rounded">
+                              Agotado
+                            </div>
+                          )}
+                          {relatedProduct.descuento > 0 && (
+                            <Badge className="absolute top-3 left-3 bg-primary">
+                              {`-${relatedProduct.descuento}%`}
+                            </Badge>
+                          )}
                   <div className="p-4">
                     <Link to={`/producto/${relatedProduct.id}`} className="text-lg font-medium hover:text-primary transition-colors">
                       {relatedProduct.nombre}
                     </Link>
-                    <div className="flex items-center mt-2">
-                      <div className="flex">
-                        {[...Array(5)].map((_, i) => (
-                          <Star
-                            key={i}
-                            size={14}
-                            className={i < 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
-                          />
-                        ))}
-                      </div>
-                      <span className="text-xs text-gray-500 ml-2">12</span>
-                    </div>
-                    <div className="mt-2 font-bold">
-                      ${relatedProduct.precio.toFixed(2)}
+                    <div className="product-card__price mt-2 font-bold">
+                      ${relatedProduct.descuento ? (
+                            relatedProduct.precio - (relatedProduct.precio *
+                            (relatedProduct.descuento / 100))
+                          ).toFixed(2) : relatedProduct.precio.toFixed(2)}
+                      {bdvPrice !== null && (
+                        <div>
+                          <span className="text-sm text-gray-500">
+                            {((relatedProduct.precio - (relatedProduct.precio *
+                            (relatedProduct.descuento / 100))) * bdvPrice).toFixed(2)} BS
+                          </span>
+                        </div>
+                      )}
+                      {relatedProduct.descuento > 0 && (
+                        <span className="text-gray-500 text-sm line-through ml-2">
+                          $
+                          {relatedProduct.precio.toFixed(2)}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
               )) :
               <div className="col-span-4 text-center py-8">
-                <p>No related products found.</p>
+                <p>No hay productos relacionados.</p>
               </div>
             }
           </div>

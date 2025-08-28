@@ -288,9 +288,10 @@ const Checkout = () => {
       <main className="flex-1 container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-8">Finalizar Compra</h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit}>
+        <div className="flex flex-col lg:grid lg:grid-cols-3 gap-8">
+          {/* Form Section - Visible on all screens */}
+          <div className="lg:col-span-2 order-1 lg:order-1">
+            <form onSubmit={handleSubmit} id="checkout-form">
               {/* Delivery Method Section */}
               <Card className="mb-6">
                 <CardHeader>
@@ -516,24 +517,27 @@ const Checkout = () => {
                 </CardContent>
               </Card>
 
-              <Button
-                type="submit"
-                className="w-full"
-                size="lg"
-                disabled={isSubmitting || !selectedPaymentMethod}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Procesando...
-                  </>
-                ) : "Confirmar Pedido"}
-              </Button>
+              {/* Submit Button - Hidden on mobile, shown on desktop */}
+              {/* <div className="hidden lg:block">
+                <Button
+                  type="submit"
+                  className="w-full"
+                  size="lg"
+                  disabled={isSubmitting || !selectedPaymentMethod}
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Procesando...
+                    </>
+                  ) : "Confirmar Pedido"}
+                </Button>
+              </div> */}
             </form>
           </div>
 
           {/* Order Summary */}
-          <div>
+          <div className="order-2 lg:order-2">
             <Card className="sticky top-8">
               <CardHeader>
                 <CardTitle>Resumen del Pedido</CardTitle>
@@ -567,13 +571,13 @@ const Checkout = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-500">Envío</span>
                     <span>
-                      {deliveryMethod === "pickup" ? "$0.00" : 
-                       deliveryMethod === "local_shipping" ? "$5.99" : "$10.99"}
+                      ${deliveryMethod === "pickup" ? "0.00" : 
+                        deliveryMethod === "local_shipping" ? "5.99" : "10.99"}
                     </span>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="border-t">
+              <CardFooter className="border-t flex-col space-y-4">
                 <div className="w-full flex justify-between items-center">
                   <span className="font-semibold">Total</span>
                   <span className="text-xl font-bold">
@@ -583,6 +587,24 @@ const Checkout = () => {
                        deliveryMethod === "local_shipping" ? 5.99 : 10.99)
                     ).toFixed(2)}
                   </span>
+                </div>
+                
+                {/* Submit Button - Visible only on mobile, positioned after order summary */}
+                <div className=" w-full">
+                  <Button
+                    type="submit"
+                    form="checkout-form"
+                    className="w-full"
+                    size="lg"
+                    disabled={isSubmitting || !selectedPaymentMethod}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        Procesando...
+                      </>
+                    ) : "Confirmar Pedido"}
+                  </Button>
                 </div>
               </CardFooter>
             </Card>

@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useCart } from "@/context/CartContext";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import { apiBcv, productService } from "@/services/api";
+import { apiBcv, categoryService, productService } from "@/services/api";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -31,24 +31,30 @@ import {
 
 const AllProducts = () => {
   const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [productsPerPage] = useState(12);
   const [sortBy, setSortBy] = useState("default");
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [bdvPrice, setBdvPrice] = useState<number | null>(null);
   const { toast } = useToast();
   const { addToCart } = useCart();
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true);
-        const data = await productService.getProducts();
-        setProducts(data);
+        const [productsData, categoriesData] = await Promise.all([
+          productService.getProducts(),
+          categoryService.getCategories()
+        ]);
+        setProducts(productsData);
+        setCategories(categoriesData);
         setLoading(false);
       } catch (err) {
-        console.error("Error al cargar productos:", err);
+        console.error("Error al cargar datos:", err);
         setError(
           "No se pudieron cargar los productos. Por favor, inténtelo de nuevo más tarde."
         );
@@ -56,7 +62,7 @@ const AllProducts = () => {
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   const handleAddToCart = (product) => {
@@ -67,8 +73,13 @@ const AllProducts = () => {
     });
   };
 
-  // Sort products based on selected option
-  const sortedProducts = [...products].sort((a, b) => {
+  // Filtrar productos por categoría
+  const filteredProducts = selectedCategory === "all" 
+    ? products 
+    : products.filter(product => product.categoria.id === selectedCategory);
+
+  // Ordenar productos basado en la opción seleccionada
+  const sortedProducts = [...filteredProducts].sort((a, b) => {
     switch (sortBy) {
       case "price-low":
         return a.precio - b.precio;
@@ -104,14 +115,19 @@ const AllProducts = () => {
       });
   }, []);
 
-  // Get current products for pagination
+  // Obtener productos actuales para paginación
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const currentProducts = sortedProducts.slice(
     indexOfFirstProduct,
     indexOfLastProduct
   );
-  const totalPages = Math.ceil(products.length / productsPerPage);
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
+
+  // Resetear paginación cuando cambia la categoría
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -131,14 +147,38 @@ const AllProducts = () => {
 
         <h1 className="text-3xl font-bold mb-6">Todos los Productos</h1>
 
-        {/* Filters and sorting */}
+        {/* Filtros y ordenamiento */}
         <div className="flex flex-col md:flex-row justify-between items-start mb-6 space-y-4 md:space-y-0">
-          <div className="flex items-center">
-            <Button variant="outline" className="flex items-center">
-              <Filter size={16} className="mr-2" />
-              Filtrar
-              <ChevronDown size={14} className="ml-2" />
-            </Button>
+          <div className="flex items-center gap-2">
+            {/* Filtro por categoría */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="flex items-center">
+                  {selectedCategory === "all" ? "Todas las categorías" : 
+                   categories.find(cat => cat.id === selectedCategory)?.nombre || "Categoría"}
+                  <ChevronDown size={14} className="ml-2" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => setSelectedCategory("all")}>
+                  Todas las categorías
+                </DropdownMenuItem>
+                {categories.map((category) => (
+                  <DropdownMenuItem 
+                    key={category.id} 
+                    onClick={() => setSelectedCategory(category.id)}
+                  >
+                    {category.nombre}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Contador de productos */}
+            <span className="text-sm text-gray-600 ml-2">
+              {filteredProducts.length} producto{filteredProducts.length !== 1 ? 's' : ''}
+              {selectedCategory !== "all" && ` en ${categories.find(cat => cat.id === selectedCategory)?.nombre}`}
+            </span>
           </div>
 
           <div className="flex items-center">
@@ -192,6 +232,22 @@ const AllProducts = () => {
           </div>
         ) : error ? (
           <div className="bg-red-50 p-4 rounded-lg text-red-500">{error}</div>
+        ) : filteredProducts.length === 0 ? (
+          <div className="text-center py-12">
+            <h3 className="text-xl font-semibold text-gray-600 mb-2">
+              No hay productos en esta categoría
+            </h3>
+            <p className="text-gray-500 mb-4">
+              {selectedCategory !== "all" 
+                ? `No encontramos productos en la categoría "${categories.find(cat => cat.id === selectedCategory)?.nombre}"`
+                : "No hay productos disponibles en este momento"}
+            </p>
+            {selectedCategory !== "all" && (
+              <Button onClick={() => setSelectedCategory("all")}>
+                Ver todas las categorías
+              </Button>
+            )}
+          </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
@@ -284,7 +340,7 @@ const AllProducts = () => {
               ))}
             </div>
 
-            {/* Pagination */}
+            {/* Paginación */}
             {totalPages > 1 && (
               <Pagination className="mt-8">
                 <PaginationContent>

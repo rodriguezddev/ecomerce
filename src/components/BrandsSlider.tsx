@@ -85,7 +85,7 @@ const BrandsSlider = () => {
 
   return (
     <section className="mb-12">
-      <h2 className="section-title">Modelos Populares</h2>
+      <h2 className="section-title">Repuestos para todos los modelos Chery</h2>
 
       <div className="relative">
         {position > 0 && (

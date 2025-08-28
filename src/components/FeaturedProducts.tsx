@@ -71,18 +71,7 @@ export const ProductCard = ({ product }) => {
         <Link to={`/producto/${product.id}`} className="product-card__name text-lg font-medium hover:text-primary transition-colors">
           {product.nombre}
         </Link>
-        <div className="product-card__rating flex items-center mt-2">
-          <div className="flex">
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                size={14}
-                className={i < 4 ? "text-yellow-400 fill-yellow-400" : "text-gray-300"}
-              />
-            ))}
-          </div>
-          <span className="text-xs text-gray-500 ml-2">12 reseñas</span>
-        </div>
+
         <div className="product-card__price mt-2 font-bold">
                       ${product.descuento ? (
                             product.precio - (product.precio *
@@ -144,7 +133,7 @@ const FeaturedProducts = () => {
     return (
       <section className="mb-12">
         <div className="flex justify-between items-center mb-6">
-            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Productos destacados</h2>
+            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Productos</h2>
             <Link to="/productos" className="text-primary hover:text-primary/80 flex items-center justify-end w-1/6">
               Ver todos los productos
               <ArrowRight size={16} className="ml-2" />
@@ -170,7 +159,7 @@ const FeaturedProducts = () => {
     return (
       <section className="mb-12">
         <div className="flex justify-between items-center mb-6">
-            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Productos destacados</h2>
+            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Productos</h2>
             <Link to="/productos" className="text-primary hover:text-primary/80 flex items-center justify-end w-1/6">
               Ver todos los productos
               <ArrowRight size={16} className="ml-2" />
@@ -186,7 +175,7 @@ const FeaturedProducts = () => {
   return (
     <section className="mb-12">
       <div className="flex justify-between items-center mb-6">
-            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Productos destacados</h2>
+            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Productos</h2>
             <Link to="/productos" className="text-primary hover:text-primary/80 flex items-center justify-end w-1/6">
               Ver todos los productos
               <ArrowRight size={16} className="ml-2" />
@@ -195,10 +184,10 @@ const FeaturedProducts = () => {
       <Tabs defaultValue="trending" onValueChange={setActiveTab}>
         <div className="flex justify-center mb-6">
           <TabsList>
-            <TabsTrigger value="trending">Trending</TabsTrigger>
-            <TabsTrigger value="special">Ofertas especiales</TabsTrigger>
-            <TabsTrigger value="bestsellers">Bestsellers</TabsTrigger>
-          </TabsList>
+    <TabsTrigger value="trending">Tendencias</TabsTrigger>
+    <TabsTrigger value="special">Ofertas especiales</TabsTrigger>
+    <TabsTrigger value="bestsellers">Más vendidos</TabsTrigger>
+</TabsList>
         </div>
 
         <TabsContent value="trending" className="mt-0">

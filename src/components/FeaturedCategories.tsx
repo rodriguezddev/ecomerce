@@ -79,7 +79,7 @@ const FeaturedCategories = () => {
   if (loading) {
     return (
       <section className="mb-12">
-        <h2 className="section-title text-2xl font-bold mb-6">Categorías Destacadas</h2>
+        <h2 className="section-title text-2xl font-bold mb-6">Categorías</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {Array(6).fill(0).map((_, i) => (
             <div key={i} className="bg-gray-100 animate-pulse h-40 rounded-md"></div>
@@ -91,7 +91,7 @@ const FeaturedCategories = () => {
 
   return (
     <section className="mb-12">
-      <h2 className="section-title text-2xl font-bold mb-6">Categorías Destacadas</h2>
+      <h2 className="section-title text-2xl font-bold mb-6">Categorías</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {displayCategories.map((category) => (
           <Link
