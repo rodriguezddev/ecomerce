@@ -29,12 +29,12 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
-const paymentTypes = [
+// Cambiar los tipos de filtro de método de pago a método de entrega
+const deliveryMethods = [
   { value: "all", label: "Todos los métodos" },
-  { value: "TRANSFERENCIA", label: "Transferencia" },
-  { value: "PAGOMOVIL", label: "Pago Móvil" },
-  { value: "ZELLE", label: "Zelle" },
-  { value: "EFECTIVO", label: "Efectivo" },
+  { value: "Retiro en tienda", label: "Retiro en tienda" },
+  { value: "Delivery", label: "Delivery" },
+  { value: "Envio nacional", label: "Envío nacional" },
 ];
 
 export default function ShipmentList() {
@@ -43,7 +43,7 @@ export default function ShipmentList() {
   const [shipmentToDelete, setShipmentToDelete] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-  const [paymentFilter, setPaymentFilter] = useState("all");
+  const [deliveryFilter, setDeliveryFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
 
   const {
@@ -59,14 +59,11 @@ export default function ShipmentList() {
     },
   });
 
-  // Filter shipments based on payment method and search term
+  // Filter shipments based on delivery method and search term
   const filteredShipments = shipments.filter((shipment: any) => {
-    // Filter by payment method
-    if (paymentFilter !== "all") {
-      const hasMatchingPayment = shipment.pedido?.pagos?.some(
-        (pago: any) => pago.nombreFormaDePago === paymentFilter
-      );
-      if (!hasMatchingPayment) return false;
+    // Filter by delivery method
+    if (deliveryFilter !== "all" && shipment.metodoDeEntrega !== deliveryFilter) {
+      return false;
     }
 
     // Filter by search term
@@ -174,19 +171,19 @@ export default function ShipmentList() {
           />
         </div>
         <Select 
-          value={paymentFilter} 
+          value={deliveryFilter} 
           onValueChange={(value) => {
-            setPaymentFilter(value);
+            setDeliveryFilter(value);
             setCurrentPage(1);
           }}
         >
           <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por método de pago" />
+            <SelectValue placeholder="Filtrar por método de entrega" />
           </SelectTrigger>
           <SelectContent>
-            {paymentTypes.map((type) => (
-              <SelectItem key={type.value} value={type.value}>
-                {type.label}
+            {deliveryMethods.map((method) => (
+              <SelectItem key={method.value} value={method.value}>
+                {method.label}
               </SelectItem>
             ))}
           </SelectContent>
@@ -207,7 +204,7 @@ export default function ShipmentList() {
                   variant="ghost" 
                   className="mt-2"
                   onClick={() => {
-                    setPaymentFilter("all");
+                    setDeliveryFilter("all");
                     setSearchTerm("");
                   }}
                 >

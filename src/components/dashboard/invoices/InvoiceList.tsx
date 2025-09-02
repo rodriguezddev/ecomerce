@@ -27,6 +27,7 @@ import { Edit, Eye, Trash2, Plus, ChevronLeft, ChevronRight, ChevronsLeft, Chevr
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { orderService } from "@/services/api";
 
 export default function InvoiceList() {
   const { toast } = useToast();
@@ -49,8 +50,18 @@ export default function InvoiceList() {
     },
   });
 
+      const {
+      data: orders = [],
+    } = useQuery({
+      queryKey: ["orders"],
+      queryFn: async () => {
+        const response = await orderService.getOrders();
+        return response || [];
+      },
+    });
+
   // Filter invoices based on search term
-  const filteredInvoices = invoices.filter((invoice: any) => 
+  const filteredInvoices = orders.filter((invoice: any) => 
     invoice.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     invoice.id?.toString().includes(searchTerm) ||
     (invoice.pedido?.id?.toString().includes(searchTerm) ||
@@ -165,35 +176,49 @@ export default function InvoiceList() {
                     <TableHead>ID</TableHead>
                     <TableHead>Descripción</TableHead>
                     <TableHead>Pedido</TableHead>
-                    <TableHead>Pago</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
+                    <TableHead>Pagos</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {paginatedInvoices.map((invoice: any) => (
-                    <TableRow key={invoice.id}>
+                    invoice.factura && (
+                      <TableRow key={invoice.factura.id}>
                       <TableCell className="font-medium">
-                        #{invoice.id}
+                        #{invoice.factura.id}
                       </TableCell>
-                      <TableCell>{invoice.descripcion}</TableCell>
+                      <TableCell>{invoice.factura.descripcion}</TableCell>
                       <TableCell>
-                        {typeof invoice.pedido === "string"
-                          ? `#${invoice.pedido}`
-                          : `#${invoice.pedido?.id || "N/A"}`}
+                        {typeof invoice.id === "string"
+                          ? `#${invoice.id}`
+                          : `#${invoice?.id || "N/A"}`}
                       </TableCell>
                       <TableCell>
-                        {typeof invoice.pago === "string"
-                          ? `#${invoice.pago}`
-                          : `#${invoice.pago?.id || "N/A"}`}
-                      </TableCell>
-                      {/* <TableCell className="text-right">
+  {Array.isArray(invoice.pagos) 
+    ? invoice.pagos.map(pago => `#${pago.id}`).join(', ') 
+    : typeof invoice.pagos === "string" 
+      ? `#${invoice.pagos}` 
+      : `#${invoice.pagos?.id || "N/A"}`}
+</TableCell>
+
+<TableCell>{invoice.perfil.nombre} {invoice.perfil.apellido}</TableCell>
+<TableCell>
+  {new Date(invoice.fecha).toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  })}
+</TableCell>
+                      <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="icon" asChild>
-                            <Link to={`/dashboard/recibo/${invoice.id}`}>
+                            <Link to={`/dashboard/recibo/${invoice.factura.id}`}>
                               <Eye className="h-4 w-4" />
                             </Link>
                           </Button>
-                          <Button variant="ghost" size="icon" asChild>
+                         {/* <Button variant="ghost" size="icon" asChild>
                             <Link
                               to={`/dashboard/recibo/editar/${invoice.id}`}
                             >
@@ -232,10 +257,12 @@ export default function InvoiceList() {
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
-                          </AlertDialog>
+                          </AlertDialog>  */}
                         </div>
-                      </TableCell> */}
+                      </TableCell>
                     </TableRow>
+                    )
+                    
                   ))}
                 </TableBody>
               </Table>

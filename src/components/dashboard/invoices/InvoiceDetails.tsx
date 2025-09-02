@@ -44,11 +44,25 @@ interface Pago {
   fecha: string;
 }
 
+// Nueva interfaz para los datos de envío
+interface Envio {
+  id: number;
+  fotoGuia: string;
+  direccionEmpresa: string;
+  metodoDeEntrega: string;
+  numeroDeGuia: string;
+  destinatarioNombre: string;
+  destinatarioApellido: string;
+  destinatarioCedula: string;
+  destinatarioTelefono: string;
+}
+
 interface Pedido {
   id: number;
   items: Item[];
   perfil: Perfil;
   pagos: Pago[];
+  envios: Envio[]; // Agregar envios al interfaz Pedido
   fecha: string;
   factura?: {
     id: number;
@@ -228,9 +242,37 @@ export default function InvoiceDetails({isShowEditButton = true}) {
                     <p><strong>Referencia:</strong> {invoiceDetails[0].pagos[0].numeroReferencia}</p>
                   )}
                 </div>
+
+                  <div className="text-left md:text-right">
+      {invoiceDetails[0].envios.map((envio) => (
+        <div key={envio.id} className="space-y-1">
+          <p className="text-sm text-muted-foreground">
+            <strong>Método de entrega:</strong> {envio.metodoDeEntrega}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            <strong>Número de guía:</strong> {envio.numeroDeGuia}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            <strong>Empresa de envíos:</strong> {envio.direccionEmpresa}
+          </p>
+          {/* <p className="text-sm text-muted-foreground">
+            <strong>Destinatario:</strong> {envio.destinatarioNombre} {envio.destinatarioApellido}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            <strong>Cédula destinatario:</strong> {envio.destinatarioCedula}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            <strong>Teléfono destinatario:</strong> {envio.destinatarioTelefono}
+          </p> */}
+        </div>
+      ))}
+  </div>
               </div>
             )}
+
           </div>
+
+
 
           <Table>
             <TableHeader>

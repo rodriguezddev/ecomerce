@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Trash2, Undo2 } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2, Undo2 } from "lucide-react";
 import { productServiceExtensions } from "@/services/api-dashboard";
 import { productService } from "@/services/api";
 
@@ -25,14 +25,11 @@ import { OrderFormValues, Pedido, PaymentMethod } from "./types";
 import { getChangedFields, calculateTotal, validateStock, updateProductStock, mapPaymentMethodToBackend, restoreProductStock } from "../../../utils/utils";
 import CancelOrderDialog from "./CancelOrderDialog";
 
-
-
 // Nuevo tipo para el estado de cancelación
 export interface CancelOrderData {
   motivoCancelacion: string;
   devolverStock: boolean;
 }
-
 
 const orderFormSchema = z.object({
   tipoDePedido: z.string(),
@@ -364,9 +361,13 @@ export default function OrderForm() {
       }
 
       if (isEditing) {
-        const changes = getChangedFields(values, initialValues, isEditing);
+        // En modo edición, solo actualizamos los campos de estado y pago
+        const changes = {
+          pagado: values.pagado,
+          estado: values.estado
+        };
         
-        if (Object.keys(changes).length === 0) {
+        if (values.pagado === initialValues?.pagado && values.estado === initialValues?.estado) {
           toast({
             title: "Sin cambios",
             description: "No se detectaron cambios para actualizar",
@@ -374,25 +375,6 @@ export default function OrderForm() {
           });
           setIsSubmitting(false);
           return;
-        }
-
-        // Actualizar stock si hay cambios en los items
-        if (changes.items && initialValues) {
-          const stockUpdated = await updateProductStock(
-            values.items, 
-            initialValues.items, 
-            isEditing
-          );
-          
-          if (!stockUpdated) {
-            toast({
-              title: "Error",
-              description: "No se pudo actualizar el stock de los productos",
-              variant: "destructive",
-            });
-            setIsSubmitting(false);
-            return;
-          }
         }
 
         const updatedOrder = await orderService.updateOrder(Number(id), changes);
@@ -472,70 +454,71 @@ export default function OrderForm() {
     }
   };
 
-const handleCancelOrder = async (cancelData: CancelOrderData) => {
-  if (!isEditing || !order) return;
-  
-  setIsSubmitting(true);
-  try {
-    console.log("Cancelando pedido:", order.id);
-    console.log("Items del pedido:", order.items);
+  const handleCancelOrder = async (cancelData: CancelOrderData) => {
+    if (!isEditing || !order) return;
     
-    // 1. Actualizar el estado del pedido a "cancelado"
-    const updatedOrder = await orderService.updateOrder(Number(id), {
-      estado: "Cancelado",
-    });
-    
-    console.log("Pedido actualizado:", updatedOrder);
-    
-    // 2. Devolver el stock si está seleccionado
-    if (cancelData.devolverStock) {
-      console.log("Devolviendo stock...");
+    setIsSubmitting(true);
+    try {
+      console.log("Cancelando pedido:", order.id);
+      console.log("Items del pedido:", order.items);
       
-      // Transformar la estructura
-      const itemsForStockRestoration = order.items.map(item => ({
-        productoId: item.producto.id,
-        cantidad: item.cantidad
-      }));
+      // 1. Actualizar el estado del pedido a "cancelado"
+      const updatedOrder = await orderService.updateOrder(Number(id), {
+        estado: "Cancelado",
+      });
       
-      console.log("Items para restaurar stock:", itemsForStockRestoration);
+      console.log("Pedido actualizado:", updatedOrder);
       
-      const stockRestored = await restoreProductStock(itemsForStockRestoration);
-      
-      console.log("Resultado de restaurar stock:", stockRestored);
-      
-      if (!stockRestored) {
-        toast({
-          title: "Pedido cancelado",
-          description: "El pedido fue cancelado pero hubo un error al devolver el stock",
-          variant: "default",
-        });
+      // 2. Devolver el stock si está seleccionado
+      if (cancelData.devolverStock) {
+        console.log("Devolviendo stock...");
+        
+        // Transformar la estructura
+        const itemsForStockRestoration = order.items.map(item => ({
+          productoId: item.producto.id,
+          cantidad: item.cantidad
+        }));
+        
+        console.log("Items para restaurar stock:", itemsForStockRestoration);
+        
+        const stockRestored = await restoreProductStock(itemsForStockRestoration);
+        
+        console.log("Resultado de restaurar stock:", stockRestored);
+        
+        if (!stockRestored) {
+          toast({
+            title: "Pedido cancelado",
+            description: "El pedido fue cancelado pero hubo un error al devolver el stock",
+            variant: "default",
+          });
+        } else {
+          toast({
+            title: "Pedido cancelado",
+            description: "El pedido fue cancelado y el stock fue devuelto correctamente",
+          });
+        }
       } else {
         toast({
           title: "Pedido cancelado",
-          description: "El pedido fue cancelado y el stock fue devuelto correctamente",
+          description: "El pedido fue cancelado",
         });
       }
-    } else {
+      
+      // 3. Redirigir a la lista de pedidos
+      navigate("/dashboard/pedidos");
+    } catch (error) {
+      console.error("Error al cancelar el pedido:", error);
       toast({
-        title: "Pedido cancelado",
-        description: "El pedido fue cancelado",
+        title: "Error",
+        description: "No se pudo cancelar el pedido",
+        variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
+      setShowCancelDialog(false);
     }
-    
-    // 3. Redirigir a la lista de pedidos
-    navigate("/dashboard/pedidos");
-  } catch (error) {
-    console.error("Error al cancelar el pedido:", error);
-    toast({
-      title: "Error",
-      description: "No se pudo cancelar el pedido",
-      variant: "destructive",
-    });
-  } finally {
-    setIsSubmitting(false);
-    setShowCancelDialog(false);
-  }
-};
+  };
+
   if (orderLoading || productsLoading || profilesLoading || isLoadingPaymentMethods) {
     return <div className="flex items-center justify-center h-64">Cargando...</div>;
   }
@@ -559,17 +542,15 @@ const handleCancelOrder = async (cancelData: CancelOrderData) => {
 
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>{isEditing ? "Editar Pedido" : "Nuevo Pedido"}</CardTitle>
-          {isEditing && order && order.estado !== "Cancelado" && (
-            <Button 
-              variant="destructive" 
-              onClick={() => setShowCancelDialog(true)}
-              disabled={isSubmitting}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Cancelar Pedido
-            </Button>
-          )}
+          <div className="flex flex-row items-center ">
+<Button className="mr-2" variant="outline" size="icon" onClick={() => navigate(-1)}>
+                      <ArrowLeft className="h-4 w-4" />
+                    </Button>
+          <CardTitle>
+            {isEditing ? `Actualizar estatus del pedido #${id}` : "Nuevo Pedido"}
+          </CardTitle>
+          </div>
+          
           {isEditing && order && order.estado === "Cancelado" && (
             <Button 
               variant="outline" 
@@ -607,39 +588,73 @@ const handleCancelOrder = async (cancelData: CancelOrderData) => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
-              <OrderFormFields 
-                form={form}
-                profiles={profiles || []}
-                isEditing={isEditing}
-                isOrderCreated={isOrderCreated}
-                products={products}
-                selectedProducts={selectedProducts}
-                addProduct={addProduct}
-                removeProduct={removeProduct}
-                handleProductSelection={handleProductSelection}
-                handleQuantityChange={handleQuantityChange}
-              />
-              
-              <PaymentSection
-                showPaymentSection={showPaymentSection}
-                setShowPaymentSection={setShowPaymentSection}
-                paymentMethods={paymentMethods}
-                selectedPaymentMethod={selectedPaymentMethod}
-                setSelectedPaymentMethod={setSelectedPaymentMethod}
-                referenceNumber={referenceNumber}
-                setReferenceNumber={setReferenceNumber}
-                voucher={voucher}
-                setVoucher={setVoucher}
-                voucherPreview={voucherPreview}
-                setVoucherPreview={setVoucherPreview}
-                isOrderCreated={isOrderCreated}
-              />
-
-              <div className="flex justify-end">
-                <div className="text-lg font-medium">
-                  Total: ${calculateTotal(selectedProducts).toFixed(2)}
+              {isEditing ? (
+                // En modo edición, solo mostramos los campos de estado y pago
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Estado de pago</label>
+                    <select 
+                      className="w-full p-2 border rounded-md"
+                      {...form.register("pagado")}
+                    >
+                      <option value="false">Pendiente de pago</option>
+                      <option value="true">Pagado</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Estado de envío</label>
+                    <select 
+                      className="w-full p-2 border rounded-md"
+                      {...form.register("estado")}
+                    >
+                      <option value="Pedido en verificacion de pago">En verificación de pago</option>
+                      <option value="Pedido en proceso de empaquetado">En proceso de empaquetado</option>
+                      <option value="Pedido en camino">En camino</option>
+                      <option value="Pedido entregado">Entregado</option>
+                      <option value="Cancelado">Cancelado</option>
+                    </select>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                // En modo creación, mostramos todos los campos
+                <OrderFormFields 
+                  form={form}
+                  profiles={profiles || []}
+                  isEditing={isEditing}
+                  isOrderCreated={isOrderCreated}
+                  products={products}
+                  selectedProducts={selectedProducts}
+                  addProduct={addProduct}
+                  removeProduct={removeProduct}
+                  handleProductSelection={handleProductSelection}
+                  handleQuantityChange={handleQuantityChange}
+                />
+              )}
+              
+              {!isEditing && (
+                <PaymentSection
+                  showPaymentSection={showPaymentSection}
+                  setShowPaymentSection={setShowPaymentSection}
+                  paymentMethods={paymentMethods}
+                  selectedPaymentMethod={selectedPaymentMethod}
+                  setSelectedPaymentMethod={setSelectedPaymentMethod}
+                  referenceNumber={referenceNumber}
+                  setReferenceNumber={setReferenceNumber}
+                  voucher={voucher}
+                  setVoucher={setVoucher}
+                  voucherPreview={voucherPreview}
+                  setVoucherPreview={setVoucherPreview}
+                  isOrderCreated={isOrderCreated}
+                />
+              )}
+
+              {!isEditing && (
+                <div className="flex justify-end">
+                  <div className="text-lg font-medium">
+                    Total: ${calculateTotal(selectedProducts).toFixed(2)}
+                  </div>
+                </div>
+              )}
             </CardContent>
 
             <CardFooter className="flex justify-between">
