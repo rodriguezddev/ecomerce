@@ -186,7 +186,7 @@ export default function InvoiceList() {
                           ? `#${invoice.pago}`
                           : `#${invoice.pago?.id || "N/A"}`}
                       </TableCell>
-                      <TableCell className="text-right">
+                      {/* <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="icon" asChild>
                             <Link to={`/dashboard/recibo/${invoice.id}`}>
@@ -234,7 +234,7 @@ export default function InvoiceList() {
                             </AlertDialogContent>
                           </AlertDialog>
                         </div>
-                      </TableCell>
+                      </TableCell> */}
                     </TableRow>
                   ))}
                 </TableBody>

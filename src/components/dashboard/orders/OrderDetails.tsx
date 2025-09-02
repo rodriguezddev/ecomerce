@@ -113,7 +113,7 @@ export default function OrderDetails() {
         <div className="flex gap-2">
           {order.pagado && (
             <Button variant="outline" asChild>
-              <Link to={`/dashboard/recibo/${order.factura.id}`}>
+              <Link to={`/dashboard/recibo/${order?.factura?.id}`}>
                 <FileText className="mr-2 h-4 w-4" /> Ver Recibo
               </Link>
             </Button>

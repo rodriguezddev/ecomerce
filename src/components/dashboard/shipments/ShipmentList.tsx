@@ -267,45 +267,6 @@ export default function ShipmentList() {
                               <Eye className="h-4 w-4" />
                             </Link>
                           </Button>
-                          <Button variant="ghost" size="icon" asChild>
-                            <Link to={`/dashboard/envios/editar/${shipment.id}`}>
-                              <Edit className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                          <AlertDialog 
-                            open={isDeleteDialogOpen && shipmentToDelete === shipment.id} 
-                            onOpenChange={setIsDeleteDialogOpen}
-                          >
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => confirmDelete(shipment.id!)}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  ¿Estás absolutamente seguro?
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Esta acción no se puede deshacer. Esto
-                                  eliminará permanentemente el envío de nuestros
-                                  servidores.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
-                                  Cancelar
-                                </AlertDialogCancel>
-                                <AlertDialogAction onClick={executeDelete}>
-                                  Continuar
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
                         </div>
                       </TableCell>
                     </TableRow>

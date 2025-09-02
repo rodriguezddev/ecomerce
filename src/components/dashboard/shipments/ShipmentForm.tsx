@@ -83,6 +83,31 @@ const shipmentFormSchema = z
       message: "Debe completar los datos del destinatario",
       path: ["destinatario"],
     }
+  )
+  .refine(
+    (data) => {
+      if (data.metodoDeEntrega === "Delivery" || data.metodoDeEntrega === "Envio nacional") {
+        return data.direccionEmpresa && data.direccionEmpresa.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: "La dirección es requerida para este método de entrega",
+      path: ["direccionEmpresa"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Validar que para envío nacional se tenga número de guía al enviar
+      if (data.metodoDeEntrega === "Envio nacional") {
+        return data.numeroDeGuia && data.numeroDeGuia.trim().length > 0;
+      }
+      return true;
+    },
+    {
+      message: "El número de guía es requerido para envío nacional",
+      path: ["numeroDeGuia"],
+    }
   );
 
 type ShipmentFormValues = z.infer<typeof shipmentFormSchema>;
@@ -294,7 +319,7 @@ export default function ShipmentForm() {
             formData.append("image", file);
           }
         }
-        console.log(dirtyFields)
+        
         // Agregar datos del destinatario
         if (dirtyFields.usarDatosCliente || dirtyFields.destinatario) {
           if (values.destinatario) {
@@ -321,14 +346,27 @@ export default function ShipmentForm() {
 
         await shippingCompanyService.updateShipment(Number(id), formData);
 
+        // Validar número de guía antes de cambiar estado para envío nacional
         if (values.metodoDeEntrega === "Envio nacional") {
-          await orderService.updateOrder(values.pedidoId, {estado: "Pedido enviado"});
+          if (!values.numeroDeGuia || values.numeroDeGuia.trim().length === 0) {
+            toast({
+              title: "Advertencia",
+              description: "El envío se actualizó pero el estado no cambió porque falta el número de guía",
+              variant: "default",
+            });
+          } else {
+            await orderService.updateOrder(values.pedidoId, {estado: "Pedido enviado"});
+            toast({
+              title: "Envío actualizado",
+              description: "El envío ha sido actualizado correctamente y el pedido marcado como enviado",
+            });
+          }
+        } else {
+          toast({
+            title: "Envío actualizado",
+            description: "El envío ha sido actualizado correctamente",
+          });
         }
-
-        toast({
-          title: "Envío actualizado",
-          description: "El envío ha sido actualizado correctamente",
-        });
       } else {
         if (values.empresaId) {
           formData.append("empresaId", values.empresaId.toString());
@@ -353,9 +391,9 @@ export default function ShipmentForm() {
             formData.append("image", file);
           }
         }
-        console.log(values)
+        
         // Agregar datos del destinatario para creación
-        if ( values.destinatario) {
+        if (values.destinatario) {
           formData.append("destinatarioNombre", values.destinatario.nombre);
           formData.append("destinatarioApellido", values.destinatario.apellido);
           formData.append("destinatarioCedula", values.destinatario.cedula);
@@ -366,18 +404,28 @@ export default function ShipmentForm() {
           formData
         );
 
+        // Validar número de guía antes de cambiar estado para envío nacional
         if (values.metodoDeEntrega === "Envio nacional") {
-          await orderService.updateOrder(values.pedidoId, {
-            estado: "Pedido enviado",
+          if (!values.numeroDeGuia || values.numeroDeGuia.trim().length === 0) {
+            toast({
+              title: "Envío creado",
+              description: "El envío ha sido creado. Debe agregar el número de guía para marcar el pedido como enviado.",
+            });
+          } else {
+            await orderService.updateOrder(values.pedidoId, {
+              estado: "Pedido enviado",
+            });
+            toast({
+              title: "Envío creado",
+              description: "El envío ha sido creado con todos los datos y el pedido marcado como enviado",
+            });
+          }
+        } else {
+          toast({
+            title: "Envío creado",
+            description: "El envío ha sido creado correctamente",
           });
         }
-
-        toast({
-          title: "Envío creado",
-          description: values.numeroDeGuia || values.image
-            ? "El envío ha sido creado con todos los datos"
-            : "El envío ha sido creado. Puede agregar el número de guía y la foto más tarde.",
-        });
       }
 
       navigate("/dashboard/envios");
@@ -412,12 +460,11 @@ export default function ShipmentForm() {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-4">
-<Button variant="outline" size="icon" onClick={() => navigate(-1)}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-        <CardTitle>{isEditing ? "Editar Envío" : "Nuevo Envío"}</CardTitle>
+          <Button variant="outline" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <CardTitle>{isEditing ? "Editar Envío" : "Nuevo Envío"}</CardTitle>
         </div>
-        
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -655,11 +702,11 @@ export default function ShipmentForm() {
                   name="numeroDeGuia"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Número de Guía (Opcional)</FormLabel>
+                      <FormLabel>Número de Guía *</FormLabel>
                       <FormControl>
                         <Input
                           {...field}
-                          placeholder="Ingrese el número de guía (puede agregarlo más tarde)"
+                          placeholder="Ingrese el número de guía (requerido para envío nacional)"
                         />
                       </FormControl>
                       <FormMessage />
@@ -716,19 +763,33 @@ export default function ShipmentForm() {
               </>
             )}
 
-            <FormField
-              control={form.control}
-              name="direccionEmpresa"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Dirección de la empresa de Envío</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Mostrar dirección de empresa solo para Envio nacional y Delivery */}
+            {(metodoDeEntrega === "Envio nacional" || metodoDeEntrega === "Delivery") && (
+              <FormField
+                control={form.control}
+                name="direccionEmpresa"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {metodoDeEntrega === "Envio nacional" 
+                        ? "Dirección exacta de la sucursal *" 
+                        : "Dirección a domicilio *"}
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        {...field} 
+                        placeholder={
+                          metodoDeEntrega === "Envio nacional" 
+                            ? "Ingrese la dirección exacta de la sucursal de envío" 
+                            : "Ingrese la dirección completa para la entrega a domicilio"
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
           </CardContent>
 
           <CardFooter className="flex justify-between">

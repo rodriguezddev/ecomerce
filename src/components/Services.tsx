@@ -31,7 +31,7 @@ const Services = () => {
         {services.map((service) => (
           <div
             key={service.id}
-            className="bg-white border border-gray-200 rounded-lg p-6 flex items-center"
+            className="bg-white border border-gray-200 rounded-lg p-6 pt-0 flex items-center"
           >
             <div className="mr-4 text-primary">
               <service.icon size={36} />

@@ -173,13 +173,13 @@ export default function InvoiceDetails({isShowEditButton = true}) {
           <Button variant="outline" onClick={handlePrint}>
             <Printer className="mr-2 h-4 w-4" /> Imprimir
           </Button>
-          {isShowEditButton && (
+          {/* {isShowEditButton && (
             <Button asChild>
               <Link to={`/dashboard/recibo/editar/${invoice.id}`}>
                 <Edit className="mr-2 h-4 w-4" /> Editar Recibo
               </Link>
             </Button>
-          )}
+          )} */}
         </div>
       </div>
 
