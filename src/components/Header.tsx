@@ -148,7 +148,7 @@ const Header = () => {
                 <div className="relative">
                   <SquareChartGantt size={24}/>
                 </div>
-                <span className="text-xs mt-1 hidden sm:block">Productos</span>
+                <span className="text-xs mt-1 hidden sm:block">Catálogo</span>
               </Link>
           
           {/* Search */}

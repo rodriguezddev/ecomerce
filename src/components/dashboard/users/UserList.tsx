@@ -4,7 +4,7 @@ import { userService } from "@/services/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Plus, Search, Trash2, Eye, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
@@ -106,7 +106,7 @@ export default function UserList() {
       case 'Administrador':
         return "bg-red-500 hover:bg-red-600";
       case 'Vendedor':
-        return "bg-blue-500 hover:bg-blue-600";
+        return "bg-blue-500 hover:blue-600";
       default:
         return "bg-green-500 hover:bg-green-600";
     }
@@ -192,11 +192,6 @@ export default function UserList() {
                           <Button variant="ghost" size="icon" asChild>
                             <Link to={`/dashboard/usuarios/${user.id}`}>
                               <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                          <Button variant="ghost" size="icon" asChild>
-                            <Link to={`/dashboard/usuarios/editar/${user.id}`}>
-                              <Edit className="h-4 w-4" />
                             </Link>
                           </Button>
                           <AlertDialog open={isDeleteDialogOpen && userToDelete === user.id} onOpenChange={setIsDeleteDialogOpen}>

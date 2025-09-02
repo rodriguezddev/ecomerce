@@ -101,7 +101,7 @@ const ProductDetails = () => {
           <div className="flex items-center mb-6">
             <Link to="/" className="text-gray-500 hover:text-primary transition-colors">
               <ArrowLeft size={20} className="inline mr-2" />
-              Back to Products
+              Volve al Catálogo
             </Link>
           </div>
           <div className="text-center py-20">
@@ -147,7 +147,7 @@ const ProductDetails = () => {
         <nav className="flex mb-6 text-sm">
           <Link to="/" className="text-gray-500 hover:text-primary transition-colors">Home</Link>
           <ChevronRight size={16} className="mx-2 text-gray-400" />
-          <Link to="/" className="text-gray-500 hover:text-primary transition-colors">Products</Link>
+          <Link to="/" className="text-gray-500 hover:text-primary transition-colors">Catálogo</Link>
           <ChevronRight size={16} className="mx-2 text-gray-400" />
           <span className="text-gray-900 font-medium">{product.nombre}</span>
         </nav>
@@ -256,7 +256,7 @@ const ProductDetails = () => {
 
         {/* Related products section */}
         <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6">Productos relacionados</h2>
+          <h2 className="text-2xl font-bold mb-6">Catálogo relacionado</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {relatedProducts.length > 0 ?
               relatedProducts.map((relatedProduct) => (

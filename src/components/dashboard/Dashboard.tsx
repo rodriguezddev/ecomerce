@@ -148,7 +148,7 @@ export default function Dashboard() {
         
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Productos</CardTitle>
+            <CardTitle className="text-sm font-medium">Catálogo</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -220,8 +220,8 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Productos por Categoría</CardTitle>
-            <CardDescription>Distribución de productos por categoría</CardDescription>
+            <CardTitle>Catálogo por Categoría</CardTitle>
+            <CardDescription>Distribución de Catálogo por categoría</CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
             <div className="h-80">

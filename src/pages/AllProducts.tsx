@@ -141,11 +141,11 @@ const AllProducts = () => {
                 Inicio
               </Link>
             </li>
-            <li className="text-gray-800">/ Todos los Productos</li>
+            <li className="text-gray-800">/ Catálogo</li>
           </ul>
         </div>
 
-        <h1 className="text-3xl font-bold mb-6">Todos los Productos</h1>
+        <h1 className="text-3xl font-bold mb-6">Catálogo</h1>
 
         {/* Filtros y ordenamiento */}
         <div className="flex flex-col md:flex-row justify-between items-start mb-6 space-y-4 md:space-y-0">

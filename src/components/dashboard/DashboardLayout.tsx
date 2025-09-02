@@ -151,7 +151,7 @@ export default function DashboardLayout() {
                   {(isAdmin) && (
                     <SidebarMenuItem>
                       <SidebarMenuButton asChild>
-                        <Link to="/dashboard/metodos-de-pago" className="flex">
+                        <Link to="/dashboard/metodos-pago" className="flex">
                           <CreditCard className="w-5 h-5 mr-2" />
                           <span>Métodos de Pago</span>
                         </Link>

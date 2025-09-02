@@ -133,7 +133,7 @@ const FeaturedProducts = () => {
     return (
       <section className="mb-12">
         <div className="flex justify-between items-center mb-6">
-            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Productos</h2>
+            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Catálogo</h2>
             <Link to="/productos" className="text-primary hover:text-primary/80 flex items-center justify-end w-1/6">
               Ver todos los productos
               <ArrowRight size={16} className="ml-2" />
@@ -159,7 +159,7 @@ const FeaturedProducts = () => {
     return (
       <section className="mb-12">
         <div className="flex justify-between items-center mb-6">
-            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Productos</h2>
+            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Catálogo</h2>
             <Link to="/productos" className="text-primary hover:text-primary/80 flex items-center justify-end w-1/6">
               Ver todos los productos
               <ArrowRight size={16} className="ml-2" />
@@ -175,7 +175,7 @@ const FeaturedProducts = () => {
   return (
     <section className="mb-12">
       <div className="flex justify-between items-center mb-6">
-            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Productos</h2>
+            <h2 className="section-title text-2xl font-bold w-5/6 mb-0">Catálogo</h2>
             <Link to="/productos" className="text-primary hover:text-primary/80 flex items-center justify-end w-1/6">
               Ver todos los productos
               <ArrowRight size={16} className="ml-2" />

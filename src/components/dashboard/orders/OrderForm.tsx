@@ -652,7 +652,7 @@ const handleCancelOrder = async (cancelData: CancelOrderData) => {
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Procesando...
                   </>
-                ) : isEditing ? "Actualizar Pedido" : "Crear Pedido"}
+                ) : isEditing ? "Actualizar Estatus" : "Crear Pedido"}
               </Button>
             </CardFooter>
           </form>

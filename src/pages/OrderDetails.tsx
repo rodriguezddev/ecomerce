@@ -243,7 +243,7 @@ const OrderDetails = () => {
                 <div className="space-y-5">
                   {/* Order items */}
                   <div>
-                    <h3 className="font-medium mb-3">Productos</h3>
+                    <h3 className="font-medium mb-3">Catálogo</h3>
                     <div className="space-y-4">
                       {order.items.map((item) => (
                         <div key={item.id} className="flex justify-between items-center">

@@ -46,6 +46,10 @@ import ResetPasswordPage from "./components/ResetPasswordPage";
 import PaymentMethods from "./components/dashboard/paymentMethods/PaymentMethods";
 import Recibo from "./pages/recibo";
 import ShipmentDetail from "./components/dashboard/shipments/ShipmentDetail";
+import PaymentMethodList from "./components/dashboard/paymentMethods/PaymentMethodList";
+import PaymentMethodCreate from "./components/dashboard/paymentMethods/PaymentMethodCreate";
+import PaymentMethodDetail from "./components/dashboard/paymentMethods/PaymentMethodDetail";
+import CategoryDetail from "./components/dashboard/categories/CategoryDetail";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -96,6 +100,9 @@ function App() {
                   <Route path="usuarios/nuevo" element={<UserForm />} />
                   <Route path="usuarios/editar/:id" element={<UserForm />} />
                   <Route path="categorias" element={<CategoryList />} />
+                  <Route path="/dashboard/categorias/crear" element={<CategoryForm />} />
+  <Route path="/dashboard/categorias/:id" element={<CategoryDetail />} />
+  <Route path="/dashboard/categorias/editar/:id" element={<CategoryDetail />} />
                   <Route path="categorias/nueva" element={<CategoryForm />} />
                   <Route path="categorias/editar/:id" element={<CategoryForm />} />
                   <Route path="productos" element={<ProductList />} />
@@ -105,7 +112,10 @@ function App() {
                   <Route path="reportes" element={<ReportsPanel />} />
                   <Route path="empresas-envio" element={<ShippingCompanies />} />
                   <Route path="usuarios/:id" element={<UserProfile />} />
-                  <Route path="metodos-de-pago" element={<PaymentMethods />} />
+                  <Route path="metodos-pago" element={<PaymentMethodList />} />
+                  <Route path="metodos-pago/crear" element={<PaymentMethodCreate />} />
+                  <Route path="metodos-pago/:id" element={<PaymentMethodDetail />} />
+                  <Route path="metodos-pago/editar/:id" element={<PaymentMethodDetail />} />
                   <Route path="pagos" element={<PaymentList />} />
                   <Route path="pagos/nuevo" element={<PaymentForm />} />
                   <Route path="pagos/editar/:id" element={<PaymentForm />} />

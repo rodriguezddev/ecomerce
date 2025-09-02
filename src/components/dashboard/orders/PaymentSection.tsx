@@ -52,14 +52,14 @@ export default function PaymentSection({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-medium">Registrar Pago</h3>
+        <h3 className="text-lg font-medium">Registrar forma de pago</h3>
         <Button 
           type="button" 
           variant="outline" 
           onClick={() => setShowPaymentSection(!showPaymentSection)}
           disabled={isOrderCreated}
         >
-          {showPaymentSection ? "Ocultar" : "Mostrar"}
+          {showPaymentSection ? "Eliminar Pago" : "Agregar Pago"}
         </Button>
       </div>
 

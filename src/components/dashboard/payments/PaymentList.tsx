@@ -257,34 +257,6 @@ export default function PaymentList() {
                                 <Edit className="h-4 w-4" />
                               </Link>
                             </Button>
-                            <AlertDialog open={isDeleteDialogOpen && paymentToDelete?.id === payment.id} onOpenChange={setIsDeleteDialogOpen}>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() =>
-                                    confirmDelete(pedidoId, payment.id)
-                                  }
-                                  disabled={isDeleting}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    ¿Estás absolutamente seguro?
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Esto eliminará permanentemente el pago de nuestros servidores.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>Cancelar</AlertDialogCancel>
-                                  <AlertDialogAction onClick={executeDelete}>Continuar</AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>

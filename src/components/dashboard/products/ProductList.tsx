@@ -4,8 +4,8 @@ import { productService, Product, apiBcv } from "@/services/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Edit, Trash2, Eye, DollarSign, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom"
+import { Plus, Search, Trash2, Eye, DollarSign, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Link } from "react-router-dom"
 import { useToast } from "@/hooks/use-toast";
 import {
   Card,
@@ -159,7 +159,7 @@ export default function ProductList() {
   return (
     <div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mb-6">
-        <h1 className="text-3xl font-bold mb-6 md:col-span-3 sm:col-span-1 mt-3">Gestión de Productos</h1>
+        <h1 className="text-3xl font-bold mb-6 md:col-span-3 sm:col-span-1 mt-3">Gestión de productos</h1>
         <Card className="p-0">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 p-4 pb-0">
             <CardTitle className="text-sm font-medium">
@@ -328,11 +328,6 @@ export default function ProductList() {
                             <Button variant="ghost" size="icon" asChild>
                               <Link to={`/dashboard/productos/${product.id}`}>
                                 <Eye className="h-4 w-4" />
-                              </Link>
-                            </Button>
-                            <Button variant="ghost" size="icon" asChild>
-                              <Link to={`/dashboard/productos/editar/${product.id}`}>
-                                <Edit className="h-4 w-4" />
                               </Link>
                             </Button>
                             <AlertDialog open={isDeleteDialogOpen && productToDelete === product.id} onOpenChange={setIsDeleteDialogOpen}>

@@ -42,7 +42,7 @@ export default function ProductSelector({
 }: ProductSelectorProps) {
   return (
     <div>
-      <h3 className="text-lg font-medium mb-2">Productos</h3>
+      <h3 className="text-lg font-medium mb-2">Registrar Producto</h3>
       
       {form.getValues("items")?.map((item, index) => (
         <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4 p-4 border rounded">
@@ -129,8 +129,8 @@ export default function ProductSelector({
           </div>
         </div>
       ))}
-
-      <Button 
+<div className="flex justify-end">
+<Button 
         type="button" 
         variant="outline" 
         onClick={addProduct}
@@ -138,6 +138,8 @@ export default function ProductSelector({
       >
         Agregar Producto
       </Button>
+</div>
+      
     </div>
   );
 }

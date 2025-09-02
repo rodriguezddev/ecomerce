@@ -1,13 +1,14 @@
-
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { categoryService } from "@/services/api";
+import { useNavigate } from "react-router-dom";
+import { categoryServiceExtensions } from "@/services/api-dashboard";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { categoryServiceExtensions } from "@/services/api-dashboard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ArrowLeft, Save, Loader2 } from "lucide-react";
 
 const categorySchema = z.object({
   nombre: z.string().min(1, "El nombre es requerido").regex(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑüÜ]+$/, "El nombre solo puede contener letras y espacios"),
@@ -19,110 +20,149 @@ const categorySchema = z.object({
 
 type CategoryFormValues = z.infer<typeof categorySchema>;
 
-interface CategoryFormProps {
-  initialData?: {
-    id: number;
-    nombre: string;
-    descuento: number;
-  };
-  onSuccess?: () => void;
-}
-
-export default function CategoryForm({ initialData, onSuccess }: CategoryFormProps) {
+export default function CategoryForm() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   
   const form = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
     defaultValues: {
-      nombre: initialData?.nombre || "",
-      descuento: initialData?.descuento || 0,
+      nombre: "",
+      descuento: 0,
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: categoryServiceExtensions.createCategory,
+    onSuccess: () => {
+      toast({
+        title: "Categoría creada",
+        description: "La categoría se ha creado correctamente",
+      });
+      navigate("/dashboard/categorias");
+    },
+    onError: (error) => {
+      const errorMessages = (error as Error)?.message
+        .split('.')
+        .filter((msg) => msg.trim().length > 0);
+      toast({
+        title: "Error",
+        description: (
+          <div>
+            {errorMessages.map((msg, index) => (
+              <p key={index}>● {msg.trim()}</p>
+            ))}
+          </div>
+        ),
+        variant: "destructive",
+      });
     },
   });
 
   const onSubmit = async (values: CategoryFormValues) => {
-    const { formState: { dirtyFields } } = form;
-
-    try {
-      if (initialData) {
-        const dataToUpdate: Partial<CategoryFormValues> = {};
-        if (dirtyFields.nombre) dataToUpdate.nombre = values.nombre;
-        if (dirtyFields.descuento) dataToUpdate.descuento = values.descuento;
-
-        if (Object.keys(dataToUpdate).length > 0) {
-          await categoryServiceExtensions.updateCategory(initialData.id, dataToUpdate);
-        } else {
-          toast({ title: "Sin cambios", description: "No se ha modificado ningún campo." });
-          return;
-        }
-      } else {
-        await categoryServiceExtensions.createCategory(values);
-      }
-
-      if (onSuccess) {
-        onSuccess();
-      }
-    } catch (error) {
-      console.error("Error al guardar usuario:", (error as Error)?.message);
-      const oraciones = (error as Error)?.message.split('.').filter(oracion => oracion.trim().length > 0);
-      console.log(oraciones, "oraciones");
-      // Aquí es donde capturamos el error lanzado por el servicio y lo mostramos.
-      
-
-      toast({
-          title: "Error",
-          description: oraciones.map(oracion => {
-            return <p key={oracion}>● {oracion.trim()}<br/></p>;
-            }),
-          variant: "destructive",
-        });
-      
-    }
+    createMutation.mutate(values);
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        <FormField
-          control={form.control}
-          name="nombre"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Nombre</FormLabel>
-              <FormControl>
-                <Input placeholder="Nombre de la categoría" {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Button variant="outline" size="icon" onClick={() => navigate("/dashboard/categorias")}>
+          <ArrowLeft className="h-4 w-4" />
+        </Button>
+        <h1 className="text-3xl font-bold">Crear Nueva Categoría</h1>
+      </div>
 
-        <FormField
-          control={form.control}
-          name="descuento"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Descuento (%)</FormLabel>
-              <FormControl>
-                <Input 
-                  type="number" 
-                  placeholder="Porcentaje de descuento" 
-                  min="0" 
-                  max="100" 
-                  step="0.01" 
-                  {...field}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Información de la Categoría</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="nombre"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Nombre de la Categoría</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Nombre de la categoría" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        <div className="flex justify-end">
-          <Button type="submit">
-            {initialData ? "Actualizar Categoría" : "Crear Categoría"}
-          </Button>
-        </div>
-      </form>
-    </Form>
+                <FormField
+                  control={form.control}
+                  name="descuento"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Descuento (%)</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          placeholder="Porcentaje de descuento" 
+                          min="0" 
+                          max="100" 
+                          step="0.01" 
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Información Adicional</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-medium mb-2">Sobre las categorías</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Las categorías te permiten organizar tus productos y aplicar descuentos
+                    automáticamente a grupos de productos relacionados.
+                  </p>
+                </div>
+
+                <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                  <h4 className="font-medium mb-2 text-blue-800">Recomendaciones</h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Usa nombres descriptivos y claros</li>
+                    <li>• El descuento aplica a todos los productos de la categoría</li>
+                    <li>• Los productos pueden tener descuentos individuales</li>
+                    <li>• Puedes modificar la categoría en cualquier momento</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="cancel"
+              onClick={() => navigate("/dashboard/categorias")}
+            >
+              Cancelar
+            </Button>
+            <Button
+              type="submit"
+              disabled={createMutation.isPending}
+            >
+              {createMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              <Save className="mr-2 h-4 w-4" /> Crear Categoría
+            </Button>
+          </div>
+        </form>
+      </Form>
+    </div>
   );
 }

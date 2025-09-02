@@ -127,11 +127,15 @@ export default function OrderDetails() {
               </Button>
             )
           }
+          {
+            order.estado !== "Pedido enviado" && (
           <Button asChild>
             <Link to={`/dashboard/pedidos/editar/${order.id}`}>
-              <Edit className="mr-2 h-4 w-4" /> Editar Pedido
+              <Edit className="mr-2 h-4 w-4" /> Actualizar Estatus
             </Link>
           </Button>
+            )
+}
         </div>
       </div>
 

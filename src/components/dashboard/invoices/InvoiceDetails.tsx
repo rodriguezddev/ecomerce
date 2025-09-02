@@ -235,7 +235,7 @@ export default function InvoiceDetails({isShowEditButton = true}) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Producto</TableHead>
+                <TableHead>Catálogo</TableHead>
                 <TableHead className="text-center">Cantidad</TableHead>
                 <TableHead className="text-right">Precio Unitario</TableHead>
                 <TableHead className="text-right">Descuento</TableHead>
