@@ -356,9 +356,7 @@ export default function PaymentMethodDetail() {
               </Button>
             </>
           ) : (
-            <Button onClick={() => setActiveTab("edit")}>
-              <Pencil className="mr-2 h-4 w-4" /> Editar
-            </Button>
+            <div></div>
           )}
         </div>
       </div>
@@ -468,12 +466,7 @@ export default function PaymentMethodDetail() {
                           <span className="text-sm text-muted-foreground">{getTipoDisplayName(method.tipo)}</span>
                         </div>
                         
-                        <div className="flex items-center justify-between p-3 border rounded-lg">
-                          <span className="text-sm font-medium">Estado</span>
-                          <Badge variant="outline" className="bg-green-100 text-green-800">
-                            Activo
-                          </Badge>
-                        </div>
+                       
                       </div>
                     </div>
                   </div>

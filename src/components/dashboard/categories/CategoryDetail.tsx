@@ -149,9 +149,7 @@ export default function CategoryDetail() {
               </Button>
             </>
           ) : (
-            <Button onClick={() => setActiveTab("edit")}>
-              <Pencil className="mr-2 h-4 w-4" /> Editar
-            </Button>
+            <div></div>
           )}
         </div>
       </div>

@@ -568,13 +568,6 @@ const Checkout = () => {
                     <span className="text-gray-500">Subtotal</span>
                     <span>${getCartTotal().toFixed(2)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Envío</span>
-                    <span>
-                      ${deliveryMethod === "pickup" ? "0.00" : 
-                        deliveryMethod === "local_shipping" ? "5.99" : "10.99"}
-                    </span>
-                  </div>
                 </div>
               </CardContent>
               <CardFooter className="border-t flex-col space-y-4">

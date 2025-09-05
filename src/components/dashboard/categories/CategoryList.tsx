@@ -149,11 +149,6 @@ export default function CategoryList() {
                           <Eye className="h-4 w-4" />
                         </Link>
                       </Button>
-                      <Button variant="ghost" size="icon" asChild>
-                        <Link to={`/dashboard/categorias/editar/${category.id}`}>
-                          <Edit className="h-4 w-4" />
-                        </Link>
-                      </Button>
                       <AlertDialog open={isDeleteDialogOpen && categoryToDelete === category.id} onOpenChange={setIsDeleteDialogOpen}>
                         <AlertDialogTrigger asChild>
                           <Button

@@ -103,14 +103,7 @@ export const ProductCard = ({ product }) => {
             <ShoppingCart size={16} className="mr-1" />
             Agregar al carrito
           </Button>
-          <div className="flex items-center space-x-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-              <Heart size={16} />
-            </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8 rounded-full">
-              <BarChart2 size={16} />
-            </Button>
-          </div>
+
         </div>
       </CardContent>
     </Card>

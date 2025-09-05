@@ -71,7 +71,10 @@ export default function ProductSelector({
                       {products.map((product) => (
                         product.stock > 0 && (
                           <SelectItem key={product.id} value={product.id.toString()}>
-                            {product.nombre} - ${product.precio.toFixed(2)}
+                            {product.nombre} - ${product.descuento ? (
+                            product.precio - (product.precio *
+                            (product.descuento / 100))
+                          ).toFixed(2) : product.precio.toFixed(2)}
                           </SelectItem>
                         )
                       ))}

@@ -202,9 +202,7 @@ export default function UserProfile() {
               </Button>
             </div>
           ) : (
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit className="mr-2 h-4 w-4" /> Editar Usuario
-            </Button>
+            <div></div>
           )}
         </div>
       </div>

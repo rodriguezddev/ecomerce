@@ -390,12 +390,6 @@ const OrderDetails = () => {
                       </div>
                     </>
                   )}
-                  {order.envios && order.envios.length > 0 && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Envío</span>
-                      <span>{order.envios[0].metodoDeEntrega === "Retiro en tienda" ? "$0.00" : "Cobro a destino"}</span>
-                    </div>
-                  )}
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between border-t pt-4">

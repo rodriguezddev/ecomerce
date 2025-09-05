@@ -260,9 +260,7 @@ export default function ProductDetails() {
               </Button>
             </>
           ) : (
-            <Button onClick={() => setIsEditing(true)}>
-              <Edit className="mr-2 h-4 w-4" /> Editar Producto
-            </Button>
+            <div></div>
           )}
         </div>
       </div>
