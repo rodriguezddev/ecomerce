@@ -290,7 +290,7 @@ const Orders = () => {
                                                             asChild
                                                         >
                                                             <Link to={`/recibo/${order.factura.id}`}>
-                                                                Descargar recibo
+                                                                Visualizar recibo
                                                             </Link>
                                                         </Button>
                                                     )}

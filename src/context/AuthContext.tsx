@@ -9,6 +9,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean; // Nuevo estado para manejar la carga inicial
   login: (username: string, password: string) => Promise<boolean>;
+  updateProfile: (profile: Profile) => void;
   register: (userData: User) => Promise<boolean>;
   logout: () => void;
 }
@@ -116,6 +117,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const updateProfile = (updatedProfile: Profile) => {
+    setProfile(updatedProfile);
+    if (user) {
+      const updatedUser = { ...user, perfil: updatedProfile };
+      setUser(updatedUser);
+      localStorage.setItem('user', JSON.stringify(updatedUser));
+    }
+  };
+
+
   const logout = () => {
     authService.logout();
     setUser(null);
@@ -136,6 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       isLoading,
       login, 
       register,
+      updateProfile,
       logout 
     }}>
       {children}

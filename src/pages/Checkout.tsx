@@ -307,7 +307,6 @@ const Checkout = () => {
     try {
       // Calculate order total
       const subtotal = getCartTotalSinDescuento();
-
       const orderTotal = subtotal;
 
       // Create order
@@ -317,7 +316,7 @@ const Checkout = () => {
       }));
 
       const orderData = {
-        tipoDePedido: "Tienda",
+        tipoDePedido: "Online",
         estado: "Pedido en verificacion de pago",
         pagado: false,
         perfilId: user.perfil.id,
@@ -337,22 +336,35 @@ const Checkout = () => {
         });
       }
 
-      // Process payment
-      const paymentBase = {
-        nombreFormaDePago: mapPaymentMethodToBackend(selectedPaymentMethod.tipo),
-        monto: orderTotal,
-        metodoDePagoId: selectedPaymentMethod.id
-      };
+      // Process payment - usando FormData para incluir la imagen
+      const paymentFormData = new FormData();
+      
+      // Agregar campos básicos
+      paymentFormData.append("nombreFormaDePago", mapPaymentMethodToBackend(selectedPaymentMethod.tipo));
+      paymentFormData.append("monto", orderTotal.toString());
+      paymentFormData.append("metodoDePagoId", selectedPaymentMethod.id.toString());
+      
+      // Agregar número de referencia si no es efectivo
+      if (selectedPaymentMethod.tipo.toLowerCase() !== "efectivo") {
+        paymentFormData.append("numeroReferencia", referenceNumber.trim());
+      }
+      
+      // Agregar imagen del comprobante si existe
+      if (voucher) {
+        paymentFormData.append("image", voucher);
+      } else if (voucherPreview) {
+        // Si tenemos voucherPreview (base64) pero no el archivo, convertirlo
+        try {
+          const response = await fetch(voucherPreview);
+          const blob = await response.blob();
+          const file = new File([blob], "comprobante.png", { type: blob.type });
+          paymentFormData.append("image", file);
+        } catch (error) {
+          console.error("Error al convertir voucherPreview a archivo:", error);
+        }
+      }
 
-      // Solo agregar numeroReferencia si NO es efectivo
-      const paymentData = selectedPaymentMethod.tipo.toLowerCase() === "efectivo"
-        ? paymentBase
-        : {
-            ...paymentBase,
-            numeroReferencia: referenceNumber.trim()
-          };
-
-      await paymentService.createPayment(orderId, paymentData);
+      await paymentService.createPayment(orderId, paymentFormData);
 
       // Create shipping
       let shippingAddressText = "";

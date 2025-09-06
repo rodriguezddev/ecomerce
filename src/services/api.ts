@@ -75,7 +75,7 @@ export interface Order {
   envios?: any[];
 }
 
-export interface Payment {
+export interface Payment extends FormData {
   id?: number;
   nombreFormaDePago: string;
   numeroReferencia: string;
@@ -798,10 +798,10 @@ export const paymentService = {
       const response = await fetch(`${import.meta.env.VITE_API_URL}pagos/pedido/${orderId}`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          //'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify(payment),
+        body:payment,
       });
 
       return await handleResponse(response);

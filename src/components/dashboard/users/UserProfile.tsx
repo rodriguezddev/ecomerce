@@ -218,8 +218,8 @@ export default function UserProfile() {
             </TabsList>
             
             <TabsContent value="view">
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card className="lg:col-span-1">
+              <div className="grid gap-6 md:grid-cols-2">
+                <Card>
                   <CardHeader>
                     <CardTitle>Datos de la Cuenta</CardTitle>
                   </CardHeader>
@@ -248,7 +248,7 @@ export default function UserProfile() {
                   </CardContent>
                 </Card>
 
-                <Card className="lg:col-span-2">
+                <Card>
                   <CardHeader>
                     <CardTitle>Información Personal</CardTitle>
                   </CardHeader>
@@ -325,9 +325,10 @@ export default function UserProfile() {
                         </FormItem>
                       )}
                     />
-                    <FormField
+                    {/* <FormField
                       control={form.control}
                       name="password"
+                     
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nueva Contraseña</FormLabel>
@@ -337,7 +338,7 @@ export default function UserProfile() {
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
+                    /> */}
                     <FormField
                       control={form.control}
                       name="rol"

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { userService } from "@/services/api";
+import { authService, profileService, userService } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
@@ -31,42 +31,92 @@ import {
   FileText, 
   Phone, 
   MapPin, 
-  Edit 
+  Edit,
+  X,
+  Eye,
+  EyeOff,
+  CreditCard,
+  Home
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
-interface ProfileData {
-  nombre: string;
-  apellido: string;
-  telefono: string;
-  direccion: string;
-  ciudad: string;
-  estado: string;
-  codigoPostal: string;
-}
+// Esquema de validación para el perfil
+const profileSchema = z.object({
+  nombre: z.string()
+    .min(1, "El nombre es requerido")
+    .regex(/^[a-zA-Z\s]+$/, { message: "El nombre solo puede contener letras y espacios" }),
+  apellido: z.string()
+    .min(1, "El apellido es requerido")
+    .regex(/^[a-zA-Z\s]+$/, { message: "El apellido solo puede contener letras y espacios" }),
+  numeroTelefono: z.string()
+    .min(1, "El número de teléfono es requerido")
+    .regex(/^\d{4}-\d{7}$/, { message: "El formato del teléfono debe ser 0414-1234567" }),
+  direccion: z.string().min(1, "La dirección es requerida"),
+});
+
+// Esquema de validación para la contraseña
+const passwordSchema = z.object({
+  currentPassword: z.string().min(1, "La contraseña actual es requerida"),
+  newPassword: z.string()
+    .min(6, "La nueva contraseña debe tener al menos 6 caracteres"),
+  confirmPassword: z.string().min(1, "Debe confirmar la nueva contraseña")
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: "Las contraseñas no coinciden",
+  path: ["confirmPassword"],
+});
+
+type ProfileFormValues = z.infer<typeof profileSchema>;
+type PasswordFormValues = z.infer<typeof passwordSchema>;
+
+const recoverySchema = z.object({
+  email: z.string().email({ message: "Por favor ingresa un correo electrónico válido" }),
+});
+
+type RecoveryFormValues = z.infer<typeof recoverySchema>;
 
 const Profile = () => {
   const { isAuthenticated, user, updateProfile } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
-  const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("view");
+  const [isEditing, setIsEditing] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [profileData, setProfileData] = useState<ProfileData>({
-    nombre: "",
-    apellido: "",
-    telefono: "",
-    direccion: "",
-    ciudad: "",
-    estado: "",
-    codigoPostal: ""
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
+
+  const recoveryForm = useForm<RecoveryFormValues>({
+    resolver: zodResolver(recoverySchema),
+    defaultValues: {
+      email: "",
+    },
   });
 
-  const [passwordData, setPasswordData] = useState({
-    currentPassword: "",
-    newPassword: "",
-    confirmPassword: ""
+  const profileForm = useForm<ProfileFormValues>({
+    resolver: zodResolver(profileSchema),
+    defaultValues: {
+      cedula: "",
+      numeroTelefono: "",
+      nombre: "",
+      apellido: "",
+      direccion: ""
+    },
+  });
+
+  const passwordForm = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      currentPassword: "",
+      newPassword: "",
+      confirmPassword: ""
+    },
   });
 
   useEffect(() => {
@@ -78,19 +128,17 @@ const Profile = () => {
 
     if (user?.perfil) {
       // Pre-populate the form with user data
-      setProfileData({
+      profileForm.reset({
         nombre: user.perfil.nombre || "",
         apellido: user.perfil.apellido || "",
-        telefono: user.perfil.telefono || "",
+        numeroTelefono: user.perfil.numeroTelefono || user.perfil.telefono || "",
         direccion: user.perfil.direccion || "",
-        ciudad: user.perfil.ciudad || "",
-        estado: user.perfil.estado || "",
-        codigoPostal: user.perfil.codigoPostal || ""
+        cedula: user.perfil.cedula || "",
       });
     }
 
     setLoading(false);
-  }, [isAuthenticated, user]);
+  }, [isAuthenticated, user, profileForm]);
 
   const handleAuthModalClose = (open: boolean) => {
     setIsAuthModalOpen(open);
@@ -99,25 +147,7 @@ const Profile = () => {
     }
   };
 
-  const handleProfileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setProfileData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setPasswordData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
-
-  const handleProfileSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const onProfileSubmit = async (data: ProfileFormValues) => {
     if (!user?.perfil?.id) {
       toast({
         title: "Error",
@@ -131,18 +161,20 @@ const Profile = () => {
       setSaving(true);
 
       // Update profile in the backend
-      await userService.updateUserProfile(user.perfil.id, profileData);
+      await profileService.updateProfile(user.perfil.id, data);
 
       // Update local context
       updateProfile({
         ...user.perfil,
-        ...profileData
+        ...data
       });
 
       toast({
         title: "Perfil actualizado",
         description: "Tu información ha sido actualizada correctamente",
       });
+
+      setIsEditing(false);
     } catch (error) {
       console.error("Error updating profile:", error);
       toast({
@@ -155,57 +187,26 @@ const Profile = () => {
     }
   };
 
-  const handlePasswordSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    // Validate passwords
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      toast({
-        title: "Las contraseñas no coinciden",
-        description: "La nueva contraseña y su confirmación deben ser iguales",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (passwordData.newPassword.length < 6) {
-      toast({
-        title: "Contraseña muy corta",
-        description: "La contraseña debe tener al menos 6 caracteres",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const handleRecoverySubmit = async (values: RecoveryFormValues) => {
+    setIsSubmitting(true);
     try {
-      setSaving(true);
-
-      // Call API to change password
-      await userService.changePassword(
-        passwordData.currentPassword,
-        passwordData.newPassword
-      );
-
+      // Aquí iría la llamada a tu servicio de recuperación de contraseña
+      await authService.forgotPassword(values.email);
+      
       toast({
-        title: "Contraseña actualizada",
-        description: "Tu contraseña ha sido actualizada correctamente",
+        title: "Correo enviado",
+        description: "Si el correo existe, recibirás instrucciones para cambiar tu contraseña",
       });
-
-      // Reset form
-      setPasswordData({
-        currentPassword: "",
-        newPassword: "",
-        confirmPassword: ""
-      });
+      setIsRecoveryOpen(false);
+      recoveryForm.reset();
     } catch (error) {
-      console.error("Error changing password:", error);
       toast({
-        title: "Error al cambiar contraseña",
-        description: "Asegúrese de que la contraseña actual sea correcta",
         variant: "destructive",
+        title: "Error al enviar el correo",
+        description: (error as Error)?.message || "Ocurrió un error al intentar cambiar tu contraseña",
       });
     } finally {
-      setSaving(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -245,281 +246,238 @@ const Profile = () => {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-3xl font-bold">Mi Perfil</h1>
+            <div className="ml-auto">
+              {isEditing ? (
+                <div className="flex gap-2">
+                  <Button 
+                    variant="cancel"
+                    onClick={() => {
+                      setIsEditing(false);
+                      profileForm.reset();
+                      passwordForm.reset();
+                    }}
+                  >
+                    <X className="mr-2 h-4 w-4" /> Cancelar
+                  </Button>
+                  <Button 
+                    onClick={profileForm.handleSubmit(onProfileSubmit)}
+                    disabled={saving}
+                  >
+                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    <Save className="mr-2 h-4 w-4" /> Guardar
+                  </Button>
+                </div>
+              ) : (
+                <div></div>
+              )}
+            </div>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            <Card className="lg:col-span-1">
-              <CardHeader>
-                <CardTitle>Datos de la Cuenta</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <User className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Nombre de Usuario</p>
-                    <p className="font-medium">{user?.username || "N/A"}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Mail className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="font-medium">{user?.email || "N/A"}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Shield className="h-5 w-5 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Rol</p>
-                    <Badge className={getRoleBadgeColor(user?.rol || "Usuario")}>
-                      {user?.rol || "Usuario"}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle>Información Personal</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {user?.perfil ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="flex items-center gap-4">
-                      <User className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Nombre Completo</p>
-                        <p className="font-medium">{user.perfil.nombre} {user.perfil.apellido}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <FileText className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Cédula</p>
-                        <p className="font-medium">{user.perfil.cedula || "No especificada"}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <Phone className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Teléfono</p>
-                        <p className="font-medium">{user.perfil.telefono || "No especificado"}</p>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-4 md:col-span-2">
-                      <MapPin className="h-5 w-5 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Dirección</p>
-                        <p className="font-medium">{user.perfil.direccion || "No especificada"}</p>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-muted-foreground">No tienes un perfil asociado.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          <Tabs defaultValue="personal">
-            <TabsList className="mb-6">
-              <TabsTrigger value="personal" className="flex items-center gap-2">
-                <User size={16} />
-                <span>Editar Información Personal</span>
-              </TabsTrigger>
-              <TabsTrigger value="security" className="flex items-center gap-2">
-                <KeySquare size={16} />
-                <span>Seguridad</span>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="view">Vista General</TabsTrigger>
+              <TabsTrigger value="edit" onClick={() => setIsEditing(true)}>
+                Editar Información
               </TabsTrigger>
             </TabsList>
+            
+            <TabsContent value="view">
+              <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
 
-            <TabsContent value="personal">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Editar Datos Personales</CardTitle>
-                  <CardDescription>
-                    Actualiza tu información personal y de contacto
-                  </CardDescription>
-                </CardHeader>
-                <form onSubmit={handleProfileSubmit}>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="nombre">Nombre</Label>
-                        <Input
-                          id="nombre"
-                          name="nombre"
-                          placeholder="Tu nombre"
-                          value={profileData.nombre}
-                          onChange={handleProfileChange}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="apellido">Apellido</Label>
-                        <Input
-                          id="apellido"
-                          name="apellido"
-                          placeholder="Tu apellido"
-                          value={profileData.apellido}
-                          onChange={handleProfileChange}
-                        />
-                      </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="telefono">Teléfono</Label>
-                      <Input
-                        id="telefono"
-                        name="telefono"
-                        placeholder="Tu número de teléfono"
-                        value={profileData.telefono}
-                        onChange={handleProfileChange}
-                      />
-                    </div>
-
-                    <Separator />
-
-                    <div className="space-y-2">
-                      <Label htmlFor="direccion">Dirección</Label>
-                      <Input
-                        id="direccion"
-                        name="direccion"
-                        placeholder="Tu dirección"
-                        value={profileData.direccion}
-                        onChange={handleProfileChange}
-                      />
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="ciudad">Ciudad</Label>
-                        <Input
-                          id="ciudad"
-                          name="ciudad"
-                          placeholder="Tu ciudad"
-                          value={profileData.ciudad}
-                          onChange={handleProfileChange}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="estado">Estado</Label>
-                        <Input
-                          id="estado"
-                          name="estado"
-                          placeholder="Tu estado"
-                          value={profileData.estado}
-                          onChange={handleProfileChange}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="codigoPostal">Código Postal</Label>
-                        <Input
-                          id="codigoPostal"
-                          name="codigoPostal"
-                          placeholder="Tu código postal"
-                          value={profileData.codigoPostal}
-                          onChange={handleProfileChange}
-                        />
+                <Card className="lg:col-span-2">
+                  <CardHeader>
+                    <CardTitle>Información Personal</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    {user?.perfil ? (
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="flex items-center gap-4">
+                          <User className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Nombre Completo</p>
+                            <p className="font-medium">{user.perfil.nombre} {user.perfil.apellido}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <FileText className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Cédula</p>
+                            <p className="font-medium">{user.perfil.cedula || "No especificada"}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <Phone className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Teléfono</p>
+                            <p className="font-medium">{user.perfil.numeroTelefono || user.perfil.telefono || "No especificado"}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                          <MapPin className="h-5 w-5 text-muted-foreground" />
+                          <div>
+                            <p className="text-sm text-muted-foreground">Dirección</p>
+                            <p className="font-medium">{user.perfil.direccion || "No especificada"}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-4">
+                      <Mail className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Email</p>
+                        <p className="font-medium">{user?.email || "N/A"}</p>
                       </div>
                     </div>
+                    <div className="flex items-center gap-4">
+                      <Shield className="h-5 w-5 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm text-muted-foreground">Rol</p>
+                        <Badge className={getRoleBadgeColor(user?.rol || "Usuario")}>
+                          {user?.rol || "Usuario"}
+                        </Badge>
+                      </div>
+                    </div>
+                      </div>
+                    ) : (
+                      <p className="text-muted-foreground">No tienes un perfil asociado.</p>
+                    )}
                   </CardContent>
-                  <CardFooter>
-                    <Button
-                      type="submit"
-                      className="flex items-center gap-2"
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Guardando...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="h-4 w-4" />
-                          Guardar cambios
-                        </>
-                      )}
-                    </Button>
-                  </CardFooter>
-                </form>
-              </Card>
+                </Card>
+              </div>
             </TabsContent>
-
-            <TabsContent value="security">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Cambiar contraseña</CardTitle>
-                  <CardDescription>
-                    Actualiza tu contraseña para mantener tu cuenta segura
-                  </CardDescription>
-                </CardHeader>
-                <form onSubmit={handlePasswordSubmit}>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="currentPassword">Contraseña actual</Label>
-                      <Input
-                        id="currentPassword"
-                        name="currentPassword"
-                        type="password"
-                        placeholder="Tu contraseña actual"
-                        value={passwordData.currentPassword}
-                        onChange={handlePasswordChange}
-                        required
-                      />
+            
+            <TabsContent value="edit">
+              <div className="grid gap-6 md:grid-cols-1">
+                {/* Información Personal */}
+                <Card>
+                  <CardHeader className="grid md:grid-cols-2">
+                    <div>
+                      <CardTitle>Información Personal</CardTitle>
+                      <CardDescription>
+                        Actualiza tu información personal y de contacto
+                      </CardDescription>
                     </div>
-
-                    <Separator />
-
-                    <div className="space-y-2">
-                      <Label htmlFor="newPassword">Nueva contraseña</Label>
-                      <Input
-                        id="newPassword"
-                        name="newPassword"
-                        type="password"
-                        placeholder="Tu nueva contraseña"
-                        value={passwordData.newPassword}
-                        onChange={handlePasswordChange}
-                        required
-                      />
+                    
+                    <div className="ml-auto flex items-end gap-2">
+                      <Button variant="outline" onClick={() => setIsRecoveryOpen(true)}>
+                        Cambiar contraseña
+                      </Button>
                     </div>
+                  </CardHeader>
+                  <Form {...profileForm}>
+                    <form onSubmit={profileForm.handleSubmit(onProfileSubmit)}>
+                      <CardContent className="space-y-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={profileForm.control}
+                            name="nombre"
+                            render={({ field }) => (
+                              <FormItem>
+                                <Label>Nombre</Label>
+                                <FormControl>
+                                  <div className="relative">
+                                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                    <Input placeholder="Tu nombre" className="pl-10" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={profileForm.control}
+                            name="apellido"
+                            render={({ field }) => (
+                              <FormItem>
+                                <Label>Apellido</Label>
+                                <FormControl>
+                                  <div className="relative">
+                                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                    <Input placeholder="Tu apellido" className="pl-10" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="confirmPassword">Confirmar nueva contraseña</Label>
-                      <Input
-                        id="confirmPassword"
-                        name="confirmPassword"
-                        type="password"
-                        placeholder="Confirma tu nueva contraseña"
-                        value={passwordData.confirmPassword}
-                        onChange={handlePasswordChange}
-                        required
-                      />
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button
-                      type="submit"
-                      variant="default"
-                      className="flex items-center gap-2"
-                      disabled={saving}
-                    >
-                      {saving ? (
-                        <>
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                          Actualizando...
-                        </>
-                      ) : (
-                        <>
-                          <KeySquare className="h-4 w-4" />
-                          Cambiar contraseña
-                        </>
-                      )}
-                    </Button>
-                  </CardFooter>
-                </form>
-              </Card>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={profileForm.control}
+                            name="cedula"
+                            render={({ field }) => (
+                              <FormItem>
+                                <Label>Cédula</Label>
+                                <FormControl>
+                                  <div className="relative">
+                                    <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                    <Input disabled placeholder="Tu número de cédula" className="pl-10" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={profileForm.control}
+                            name="numeroTelefono"
+                            render={({ field }) => (
+                              <FormItem>
+                                <Label>Teléfono</Label>
+                                <FormControl>
+                                  <div className="relative">
+                                    <Phone className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                    <Input placeholder="0414-1234567" className="pl-10" {...field} />
+                                  </div>
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+
+                        <Separator />
+
+                        <FormField
+                          control={profileForm.control}
+                          name="direccion"
+                          render={({ field }) => (
+                            <FormItem>
+                              <Label>Dirección</Label>
+                              <FormControl>
+                                <div className="relative">
+                                  <Home className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                  <Input placeholder="Tu dirección" className="pl-10" {...field} />
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </CardContent>
+                      <CardFooter>
+                        <Button
+                          type="submit"
+                          className="flex items-center gap-2"
+                          disabled={saving}
+                        >
+                          {saving ? (
+                            <>
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Guardando...
+                            </>
+                          ) : (
+                            <>
+                              <Save className="h-4 w-4" />
+                              Guardar cambios
+                            </>
+                          )}
+                        </Button>
+                      </CardFooter>
+                    </form>
+                  </Form>
+                </Card>
+              </div>
             </TabsContent>
           </Tabs>
         </div>
@@ -531,6 +489,49 @@ const Profile = () => {
         onOpenChange={handleAuthModalClose}
         initialMode="login"
       />
+
+      <Dialog open={isRecoveryOpen} onOpenChange={setIsRecoveryOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Cambiar contraseña</DialogTitle>
+            <DialogDescription>
+              Ingresa tu correo electrónico para recibir instrucciones.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...recoveryForm}>
+            <form onSubmit={recoveryForm.handleSubmit(handleRecoverySubmit)} className="space-y-4">
+              <FormField
+                control={recoveryForm.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Correo electrónico</FormLabel>
+                    <FormControl>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                        <Input
+                          placeholder="Ingresa tu correo electrónico"
+                          className="pl-10"
+                          {...field}
+                        />
+                      </div>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <DialogFooter>
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  Enviar instrucciones
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

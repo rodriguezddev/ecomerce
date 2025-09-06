@@ -50,9 +50,10 @@ export default function PaymentList() {
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<Array | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [paymentFilter, setPaymentFilter] = useState("all");
+        const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [paymentToDelete, setPaymentToDelete] = useState<{
     pedidoId: number;
     id: number;
@@ -106,12 +107,22 @@ export default function PaymentList() {
     }
   };
 
-  const handleViewImage = (imageName: string | null) => {
-    if (imageName) {
-      setSelectedImage(imageName);
+const handleViewImage = (pagos: any[] | null) => {
+  if (pagos && Array.isArray(pagos)) {
+    // Extraer todas las imágenes
+    const images = pagos
+      .filter(pago => pago.image)
+      .map(pago => pago.image);
+    
+    if (images.length > 0) {
+      setSelectedImage(images); // Ahora selectedImage sería un array
       setIsModalOpen(true);
     }
-  };
+  } else if (typeof pagos === 'string') {
+    setSelectedImage(pagos);
+    setIsModalOpen(true);
+  }
+};
 
   const filteredPayments = payments?.filter((payment: any) => {
     // Filtro por tipo de pago
@@ -213,7 +224,6 @@ export default function PaymentList() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Número Referencia</TableHead>
-
                     <TableHead>Pedido</TableHead>
                     <TableHead>Forma de Pago</TableHead>
                     <TableHead>Fecha</TableHead>
@@ -230,13 +240,16 @@ export default function PaymentList() {
                     return (
                       <TableRow key={payment.id}>
                         <TableCell className="font-medium">
-                          <TableCell>{payment.numeroReferencia}</TableCell>
+                          {payment.numeroReferencia}
                         </TableCell>
                         <TableCell>
                           <Badge variant="outline">#{pedidoId}</Badge>
                         </TableCell>
-                        <TableCell>{payment.nombreFormaDePago == 'PAGOMOVIL' ? 'PAGO MOVIL' : payment.nombreFormaDePago}</TableCell>
-                        
+                        <TableCell>
+                          {payment.nombreFormaDePago === 'PAGOMOVIL' 
+                            ? 'PAGO MOVIL' 
+                            : payment.nombreFormaDePago}
+                        </TableCell>
                         <TableCell>
                           {payment.fecha ? formatDate(new Date(payment.fecha)) : 'N/A'}
                         </TableCell>
@@ -245,10 +258,8 @@ export default function PaymentList() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() =>
-                                handleViewImage(payment.image)
-                              }
-                              disabled={!payment.image}
+                              onClick={() => handleViewImage(payment.pedido.pagos)}
+                              disabled={!payment?.pedido.pagos[0]?.image}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -257,6 +268,34 @@ export default function PaymentList() {
                                 <Edit className="h-4 w-4" />
                               </Link>
                             </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => confirmDelete(pedidoId, payment.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. Se eliminará permanentemente el pago.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={executeDelete}
+                                    disabled={isDeleting}
+                                  >
+                                    {isDeleting ? "Eliminando..." : "Eliminar"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>
@@ -328,20 +367,97 @@ export default function PaymentList() {
           )}
         </CardContent>
       </Card>
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Comprobante de Pago</DialogTitle>
-          </DialogHeader>
-          {selectedImage && (
-            <img
-              src={`${import.meta.env.VITE_API_URL}imagenes/${selectedImage}`}
-              alt="Comprobante de pago"
-              className="w-full h-auto object-contain rounded-md mt-4"
-            />
-          )}
-        </DialogContent>
-      </Dialog>
+
+
+<Dialog open={isModalOpen} onOpenChange={(open) => {
+  setIsModalOpen(open);
+  if (!open) setCurrentImageIndex(0); // Reset al cerrar
+}}>
+  <DialogContent className="max-w-3xl">
+    <DialogHeader>
+      <DialogTitle>
+        {Array.isArray(selectedImage) 
+          ? `Comprobante ${currentImageIndex + 1} de ${selectedImage.length}`
+          : 'Comprobante de Pago'
+        }
+      </DialogTitle>
+    </DialogHeader>
+    
+    {selectedImage && (
+      <div className="relative">
+        {Array.isArray(selectedImage) && selectedImage.length > 1 && (
+          <>
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute left-2 top-1/2 transform -translate-y-1/2 z-10"
+              onClick={() => setCurrentImageIndex(prev => 
+                prev > 0 ? prev - 1 : selectedImage.length - 1
+              )}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 z-10"
+              onClick={() => setCurrentImageIndex(prev => 
+                prev < selectedImage.length - 1 ? prev + 1 : 0
+              )}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </>
+        )}
+        
+        <img
+          src={`${import.meta.env.VITE_API_URL}imagenes/${
+            Array.isArray(selectedImage) 
+              ? selectedImage[currentImageIndex] 
+              : selectedImage
+          }`}
+          alt="Comprobante de pago"
+          className="w-full h-auto object-contain rounded-md mt-4 max-h-[70vh]"
+        />
+        
+        {Array.isArray(selectedImage) && selectedImage.length > 1 && (
+          <div className="flex justify-center mt-2 space-x-1">
+            {selectedImage.map((_, index) => (
+              <button
+                key={index}
+                className={`w-2 h-2 rounded-full ${
+                  index === currentImageIndex 
+                    ? 'bg-primary' 
+                    : 'bg-muted'
+                }`}
+                onClick={() => setCurrentImageIndex(index)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    )}
+  </DialogContent>
+</Dialog>
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente el pago.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={executeDelete}
+              disabled={isDeleting}
+            >
+              {isDeleting ? "Eliminando..." : "Eliminar"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
