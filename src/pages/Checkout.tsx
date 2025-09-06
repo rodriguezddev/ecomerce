@@ -312,7 +312,7 @@ const Checkout = () => {
       };
 
       // Agregar datos de quien retira si es retiro en tienda
-      if (deliveryMethod === "pickup") {
+      if (deliveryMethod === "national_shipping") {
         if (usarDatosCliente) {
           shippingData.quienRetiraNombre = profile?.nombre || "";
           shippingData.quienRetiraApellido = profile?.apellido || "";
