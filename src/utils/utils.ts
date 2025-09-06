@@ -39,7 +39,8 @@ export const getChangedFields = (currentValues: OrderFormValues, initialValues: 
 
 export const calculateTotal = (selectedProducts: any[]) => {
   return selectedProducts.reduce((total, product) => {
-    return total + (product.precio * product.cantidad);
+    const precioConDescuento = product.precio - (product.precio * (product.descuento / 100));
+    return total + (precioConDescuento * product.cantidad);
   }, 0);
 };
 

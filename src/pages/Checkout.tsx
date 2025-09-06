@@ -34,7 +34,8 @@ import {
   Package,
   FileUp,
   Loader2,
-  TruckIcon
+  TruckIcon,
+  User
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
@@ -44,6 +45,7 @@ import { orderService, paymentService, shippingService } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { shippingCompanyService } from "@/services/api-dashboard";
 import { paymentMethodService } from "@/services/paymentMethodService";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface PaymentMethod {
   id: number;
@@ -55,6 +57,13 @@ interface PaymentMethod {
   numeroDeCuenta?: string;
   tipoDeCuenta?: "Ahorro" | "Corriente";
   banco?: string;
+}
+
+interface RecipientData {
+  nombre: string;
+  apellido: string;
+  cedula: string;
+  numeroTelefono: string;
 }
 
 const Checkout = () => {
@@ -77,6 +86,15 @@ const Checkout = () => {
   const [lastName, setLastName] = useState("");
   const [address, setAddress] = useState("");
   const [branchOffice, setBranchOffice] = useState("");
+  
+  // Datos de quien retira el paquete
+  const [usarDatosCliente, setUsarDatosCliente] = useState(true);
+  const [datosQuienRetira, setDatosQuienRetira] = useState<RecipientData>({
+    nombre: "",
+    apellido: "",
+    cedula: "",
+    numeroTelefono: "",
+  });
 
   const { data: companies = [], isLoading: isLoadingCompanies } = useQuery({
     queryKey: ['shippingCompanies'],
@@ -106,10 +124,37 @@ const Checkout = () => {
       setFirstName(profile.nombre || "");
       setLastName(profile.apellido || "");
       setAddress(profile.direccion || "");
+      
+      // Pre-fill datos de quien retira con los datos del perfil
+      setDatosQuienRetira({
+        nombre: profile.nombre || "",
+        apellido: profile.apellido || "",
+        cedula: profile.cedula || "",
+        numeroTelefono: profile.numeroTelefono || "",
+      });
     } else if (!isAuthenticated) {
       setIsAuthModalOpen(true);
     }
   }, [isAuthenticated, profile]);
+
+  // Actualizar datos de quien retira cuando cambia la opción "usarDatosCliente"
+  useEffect(() => {
+    if (usarDatosCliente && profile) {
+      setDatosQuienRetira({
+        nombre: profile.nombre || "",
+        apellido: profile.apellido || "",
+        cedula: profile.cedula || "",
+        numeroTelefono: profile.numeroTelefono || "",
+      });
+    } else {
+      setDatosQuienRetira({
+        nombre: "",
+        apellido: "",
+        cedula: "",
+        numeroTelefono: "",
+      });
+    }
+  }, [usarDatosCliente, profile]);
 
   const handleVoucherChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -190,6 +235,20 @@ const Checkout = () => {
       return;
     }
 
+    // Validar datos de quien retira para retiro en tienda
+    if (deliveryMethod === "national_shipping" && !usarDatosCliente) {
+      if (!datosQuienRetira.nombre || !datosQuienRetira.apellido || 
+          !datosQuienRetira.cedula || !datosQuienRetira.numeroTelefono) {
+        toast({
+          title: "Datos incompletos",
+          description: "Por favor complete todos los datos de quien retirará el paquete",
+          variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+      }
+    }
+
     try {
       // Calculate order total
       const subtotal = getCartTotalSinDescuento();
@@ -242,7 +301,7 @@ const Checkout = () => {
         shippingAddressText = `${branchOffice} - ${company?.nombre || 'Empresa de envíos'}`;
       }
 
-      const shippingData = {
+      const shippingData: any = {
         pedidoId: orderId,
         direccionEmpresa: shippingAddressText,
         metodoDeEntrega: deliveryMethod === "pickup" ? "Retiro en tienda" : 
@@ -251,6 +310,21 @@ const Checkout = () => {
           empresaId: parseInt(shippingCompany, 10) 
         })
       };
+
+      // Agregar datos de quien retira si es retiro en tienda
+      if (deliveryMethod === "pickup") {
+        if (usarDatosCliente) {
+          shippingData.quienRetiraNombre = profile?.nombre || "";
+          shippingData.quienRetiraApellido = profile?.apellido || "";
+          shippingData.quienRetiraCedula = profile?.cedula || "";
+          shippingData.quienRetiraTelefono = profile?.numeroTelefono || "";
+        } else {
+          shippingData.quienRetiraNombre = datosQuienRetira.nombre;
+          shippingData.quienRetiraApellido = datosQuienRetira.apellido;
+          shippingData.quienRetiraCedula = datosQuienRetira.cedula;
+          shippingData.quienRetiraTelefono = datosQuienRetira.numeroTelefono;
+        }
+      }
 
       await shippingService.createShipping(shippingData);
 
@@ -280,6 +354,13 @@ const Checkout = () => {
     if (!open && !isAuthenticated) {
       navigate("/carrito");
     }
+  };
+
+  const handleDatosQuienRetiraChange = (field: keyof RecipientData, value: string) => {
+    setDatosQuienRetira(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   return (
@@ -342,6 +423,81 @@ const Checkout = () => {
                   </RadioGroup>
                 </CardContent>
               </Card>
+
+              {/* Sección para datos de quien retira (solo para Retiro en tienda) */}
+              {deliveryMethod === "national_shipping" && (
+                <Card className="mb-6">
+                  <CardHeader>
+                    <CardTitle className="flex items-center">
+                      <User className="mr-2" size={20} />
+                      Datos de quien retirará el paquete
+                    </CardTitle>
+                    <CardDescription>
+                      Información de la persona autorizada para retirar el pedido
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center space-x-2">
+                      <Checkbox
+                        id="usarDatosCliente"
+                        checked={usarDatosCliente}
+                        onCheckedChange={(checked) => setUsarDatosCliente(checked === true)}
+                      />
+                      <Label htmlFor="usarDatosCliente" className="cursor-pointer">
+                        Usar mis datos personales
+                      </Label>
+                    </div>
+
+                    {!usarDatosCliente ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="retiraNombre">Nombre *</Label>
+                          <Input
+                            id="retiraNombre"
+                            value={datosQuienRetira.nombre}
+                            onChange={(e) => handleDatosQuienRetiraChange("nombre", e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="retiraApellido">Apellido *</Label>
+                          <Input
+                            id="retiraApellido"
+                            value={datosQuienRetira.apellido}
+                            onChange={(e) => handleDatosQuienRetiraChange("apellido", e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="retiraCedula">Cédula *</Label>
+                          <Input
+                            id="retiraCedula"
+                            value={datosQuienRetira.cedula}
+                            onChange={(e) => handleDatosQuienRetiraChange("cedula", e.target.value)}
+                            required
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="retiraTelefono">Teléfono *</Label>
+                          <Input
+                            id="retiraTelefono"
+                            value={datosQuienRetira.numeroTelefono}
+                            onChange={(e) => handleDatosQuienRetiraChange("numeroTelefono", e.target.value)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-muted p-4 rounded-md">
+                        <h4 className="font-medium mb-2">Tus datos:</h4>
+                        <p><strong>Nombre:</strong> {profile?.nombre} {profile?.apellido}</p>
+                        <p><strong>Cédula:</strong> {profile?.cedula || 'No especificada'}</p>
+                        <p><strong>Teléfono:</strong> {profile?.numeroTelefono || 'No especificado'}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Shipping Details */}
               {deliveryMethod === "local_shipping" && (
@@ -516,23 +672,6 @@ const Checkout = () => {
                   )}
                 </CardContent>
               </Card>
-
-              {/* Submit Button - Hidden on mobile, shown on desktop */}
-              {/* <div className="hidden lg:block">
-                <Button
-                  type="submit"
-                  className="w-full"
-                  size="lg"
-                  disabled={isSubmitting || !selectedPaymentMethod}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Procesando...
-                    </>
-                  ) : "Confirmar Pedido"}
-                </Button>
-              </div> */}
             </form>
           </div>
 
@@ -563,22 +702,12 @@ const Checkout = () => {
                   ))}
                 </div>
 
-                <div className="border-t pt-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-gray-500">Subtotal</span>
-                    <span>${getCartTotal().toFixed(2)}</span>
-                  </div>
-                </div>
               </CardContent>
               <CardFooter className="border-t flex-col space-y-4">
-                <div className="w-full flex justify-between items-center">
+                <div className="w-full flex justify-between items-center pt-3">
                   <span className="font-semibold">Total</span>
                   <span className="text-xl font-bold">
-                    ${(
-                      getCartTotal() + 
-                      (deliveryMethod === "pickup" ? 0 : 
-                       deliveryMethod === "local_shipping" ? 5.99 : 10.99)
-                    ).toFixed(2)}
+                    ${getCartTotal().toFixed(2)}
                   </span>
                 </div>
                 

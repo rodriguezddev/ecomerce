@@ -136,14 +136,16 @@ export default function OrderForm() {
     if (isEditing && order) {
       const formattedItems = order.items?.map((item) => ({
         cantidad: item.cantidad,
-        productoId: item.producto.id
+        productoId: item.producto.id,
+        descuento: item.producto.descuento || 0
       }));
 
       const selectedProductsData = order.items?.map((item) => ({
         id: item.producto.id,
         nombre: item.producto.nombre,
         precio: item.producto.precio,
-        cantidad: item.cantidad
+        cantidad: item.cantidad,
+        descuento: item.producto.descuento || 0
       }));
 
       const initialData = {
@@ -176,6 +178,7 @@ export default function OrderForm() {
       id: products[0]?.id || 0,
       nombre: products[0]?.nombre || "",
       precio: products[0]?.precio || 0,
+      descuento: products[0]?.descuento || 0,
       cantidad: 1
     }]);
   };
@@ -221,7 +224,8 @@ export default function OrderForm() {
         ...newSelectedProducts[index],
         id: product.id,
         nombre: product.nombre,
-        precio: product.precio
+        precio: product.precio,
+        descuento: product?.descuento || 0,
       };
       setSelectedProducts(newSelectedProducts);
     }
@@ -524,12 +528,13 @@ export default function OrderForm() {
   }
 
   const isOrderCreated = isEditing && order;
+  const handleredirect = () => { navigate("/dashboard/pedidos"); setShowSuccessModal(false)}
 
   return (
     <>
       <OrderSuccessModal 
         show={showSuccessModal} 
-        onClose={() => setShowSuccessModal(false)} 
+        onClose={handleredirect} 
         orderData={createdOrderData} 
       />
       

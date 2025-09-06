@@ -190,23 +190,48 @@ export default function ShipmentForm() {
     },
   });
 
+  // Fetch all shipments to check for existing shipments
+  const {
+    data: shipments = [],
+    isLoading: shipmentsLoading,
+  } = useQuery({
+    queryKey: ["shipments"],
+    queryFn: async () => {
+      const response = await shippingCompanyService.getShipments();
+      return response || [];
+    },
+  });
+
   // Fetch orders with more details and filter by status
   const { data: orders = [], isLoading: ordersLoading } = useQuery({
     queryKey: ["orders-for-shipment", id],
     queryFn: async () => {
       const response = await orderService.getOrders();
+      
+      // Obtener IDs de pedidos que ya tienen envío
+      const pedidosConEnvio = shipments.map(shipment => 
+        typeof shipment.pedido === "object" ? shipment.pedido.id : Number(shipment.pedido)
+      );
+      
       return (
         response
-          .filter(order => 
-            order.estado === "Pedido en proceso de empaquetado" || 
-            (isEditing && shipment && order.id === (typeof shipment.pedido === "object" ? shipment.pedido.id : shipment.pedido))
-          )
+          .filter(order => {
+            // Si estamos editando, permitir el pedido actual incluso si ya tiene envío
+            if (isEditing && shipment && order.id === (typeof shipment.pedido === "object" ? shipment.pedido.id : shipment.pedido)) {
+              return true;
+            }
+            
+            // Filtrar pedidos en proceso de empaquetado que no tengan envío
+            return order.estado === "Pedido en proceso de empaquetado" && 
+                   !pedidosConEnvio.includes(order.id);
+          })
           .map((order) => ({
             ...order,
             totalItems: order.items.reduce((sum, item) => sum + item.cantidad, 0),
             clienteNombre: `${order.perfil?.nombre || ''} ${order.perfil?.apellido || ''}`.trim(),
             clienteTelefono: order.perfil?.numeroTelefono || '',
             clienteCedula: order.perfil?.cedula || '',
+            tieneEnvio: pedidosConEnvio.includes(order.id),
           })) || []
       );
     },
@@ -289,6 +314,22 @@ export default function ShipmentForm() {
       formState: { dirtyFields },
     } = form;
     try {
+      // Verificar si el pedido ya tiene envío (solo para creación)
+      if (!isEditing) {
+        const pedidosConEnvio = shipments.map(shipment => 
+          typeof shipment.pedido === "object" ? shipment.pedido.id : Number(shipment.pedido)
+        );
+        
+        if (pedidosConEnvio.includes(values.pedidoId)) {
+          toast({
+            title: "Error",
+            description: "Este pedido ya tiene un envío asociado. No se puede crear otro envío para el mismo pedido.",
+            variant: "destructive",
+          });
+          return;
+        }
+      }
+
       const formData = new FormData();
 
       if (isEditing) {
@@ -450,7 +491,7 @@ export default function ShipmentForm() {
     }
   };
 
-  if ((isEditing && shipmentLoading) || companiesLoading || ordersLoading) {
+  if ((isEditing && shipmentLoading) || companiesLoading || ordersLoading || shipmentsLoading) {
     return (
       <div className="flex items-center justify-center h-64">Cargando...</div>
     );
@@ -505,6 +546,7 @@ export default function ShipmentForm() {
                             key={order.id}
                             value={order.id.toString()}
                             className="py-1"
+                            disabled={order.tieneEnvio && !isEditing}
                           >
                             <div className="flex items-center gap-2">
                               <span className="font-medium">#{order.id}</span>
@@ -520,6 +562,11 @@ export default function ShipmentForm() {
                               >
                                 {order.estado}
                               </Badge>
+                              {order.tieneEnvio && (
+                                <Badge variant="destructive" className="text-xs">
+                                  Ya tiene envío
+                                </Badge>
+                              )}
                             </div>
                           </SelectItem>
                         ))

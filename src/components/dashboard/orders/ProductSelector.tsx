@@ -40,6 +40,7 @@ export default function ProductSelector({
   handleProductSelection,
   handleQuantityChange
 }: ProductSelectorProps) {
+  console.log(selectedProducts)
   return (
     <div>
       <h3 className="text-lg font-medium mb-2">Registrar Producto</h3>
@@ -115,8 +116,12 @@ export default function ProductSelector({
             <div className="flex flex-col justify-around">
               <FormLabel>Subtotal</FormLabel>
               <div className="h-10 flex items-center">
-                ${(selectedProducts[index]?.precio * selectedProducts[index]?.cantidad || 0).toFixed(2)}
-              </div>
+  ${(
+    (selectedProducts[index].precio - 
+     (selectedProducts[index].precio * (selectedProducts[index].descuento / 100))) * 
+    (selectedProducts[index]?.cantidad || 0)
+  ).toFixed(2)}
+</div>
             </div>
 
             <div className="flex items-end">

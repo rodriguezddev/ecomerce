@@ -309,7 +309,7 @@ export default function OrderList() {
                     // Calculate total
                     const total =
                       order.items?.reduce((sum: number, item: any) => {
-                        return sum + item.cantidad * item.producto.precio;
+                        return sum + item.cantidad * (item.producto.precio - (item.producto.precio * (item.producto.descuento / 100)));
                       }, 0) || 0;
 
                     return (

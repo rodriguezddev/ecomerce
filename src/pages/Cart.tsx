@@ -213,14 +213,9 @@ const Cart = () => {
               <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
                 <h2 className="text-lg font-bold mb-4">Resumen del pedido</h2>
 
-                <div className="border-t border-b border-gray-200 py-4 mb-4">
-                  <div className="flex justify-between mb-2">
-                    <span className="text-gray-600">Subtotal</span>
-                    <span className="font-medium">${getCartTotal().toFixed(2)}</span>
-                  </div>
-                </div>
+                
 
-                <div className="flex justify-between mb-6">
+                <div className="flex justify-between mb-6 pt-3 border-t">
                   <span className="text-lg font-bold">Total</span>
                   <span className="text-lg font-bold">${getCartTotal().toFixed(2)}</span>
                 </div>

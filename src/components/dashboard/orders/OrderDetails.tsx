@@ -187,7 +187,7 @@ export default function OrderDetails() {
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.producto.nombre}</TableCell>
                       <TableCell className="text-center">{item.cantidad}</TableCell>
-                      <TableCell className="text-right">${item.producto.precio.toFixed(2)}</TableCell>
+                      <TableCell className="text-right">${(item.producto.precio - (item.producto.precio * (item.producto.descuento / 100)))}</TableCell>
                       <TableCell className="text-right">${(item.cantidad * item.producto.precio).toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
