@@ -378,15 +378,15 @@ const Checkout = () => {
       // Agregar datos de quien retira si es retiro en tienda
       if (deliveryMethod === "national_shipping") {
         if (usarDatosCliente) {
-          shippingData.quienRetiraNombre = profile?.nombre || "";
-          shippingData.quienRetiraApellido = profile?.apellido || "";
-          shippingData.quienRetiraCedula = profile?.cedula || "";
-          shippingData.quienRetiraTelefono = profile?.numeroTelefono || "";
+          shippingData.destinatarioNombre = profile?.nombre || "";
+          shippingData.destinatarioApellido = profile?.apellido || "";
+          shippingData.destinatarioCedula = profile?.cedula || "";
+          shippingData.destinatarioTelefono = profile?.numeroTelefono || "";
         } else {
-          shippingData.quienRetiraNombre = datosQuienRetira.nombre;
-          shippingData.quienRetiraApellido = datosQuienRetira.apellido;
-          shippingData.quienRetiraCedula = datosQuienRetira.cedula;
-          shippingData.quienRetiraTelefono = datosQuienRetira.numeroTelefono;
+          shippingData.destinatarioNombre = datosQuienRetira.nombre;
+          shippingData.destinatarioApellido = datosQuienRetira.apellido;
+          shippingData.destinatarioCedula = datosQuienRetira.cedula;
+          shippingData.destinatarioTelefono = datosQuienRetira.numeroTelefono;
         }
       }
 
@@ -635,7 +635,7 @@ const Checkout = () => {
                       </Select>
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="branchOffice">Sucursal</Label>
+                      <Label htmlFor="branchOffice">Dirección exacta de la sucursal</Label>
                       <Input
                         id="branchOffice"
                         value={branchOffice}

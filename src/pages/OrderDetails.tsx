@@ -27,7 +27,8 @@ import {
   AlertTriangle,
   Loader2,
   Eye,
-  ImageIcon
+  ImageIcon,
+  User
 } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import {
@@ -312,6 +313,7 @@ const OrderDetails = () => {
                   {/* Shipping info */}
                   {order.envios && order.envios.length > 0 && (
                     <div>
+<div>
                       <h3 className="font-medium mb-3 flex items-center gap-2">
                         <Truck className="h-5 w-5" />
                         Información de Envío
@@ -356,6 +358,53 @@ const OrderDetails = () => {
                         )}
                       </div>
                     </div>
+                    <div>
+                      <h3 className="font-medium mb-3 flex items-center gap-2">
+                        <User className="h-5 w-5" />
+                        Información del destinatario
+                      </h3>
+                      <div className="bg-muted/30 rounded-md p-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-muted-foreground">Nombre</p>
+                            <p className="font-medium">{order.envios[0].destinatarioNombre}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-muted-foreground">Apellido</p>
+                            <p className="font-medium">{order.envios[0].destinatarioApellido}</p>
+                          </div>
+                          {order.envios[0].destinatarioCedula && (
+                            <div>
+                              <p className="text-sm text-muted-foreground">Cédula</p>
+                              <p className="font-medium">{order.envios[0].destinatarioCedula}</p>
+                            </div>
+                          )}
+                          {order.envios[0].destinatarioTelefono && (
+                            <div>
+                              <p className="text-sm text-muted-foreground">Teléfono</p>
+                              <p className="font-medium">{order.envios[0].destinatarioTelefono}</p>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Botón para ver la foto de la guía si existe */}
+                        {order.envios[0].fotoGuia && (
+                          <div className="mt-4">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => openImageModal(order.envios[0].fotoGuia!)}
+                              className="flex items-center gap-2"
+                            >
+                              <ImageIcon className="h-4 w-4" />
+                              Ver foto de la guía
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    </div>
+                    
                   )}
                 </div>
               </CardContent>
