@@ -28,6 +28,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { productServiceExtensions } from "@/services/api-dashboard";
+import useEffect from 'react';
 
 const productSchema = z.object({
   nombre: z
