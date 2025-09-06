@@ -43,9 +43,10 @@ import { useAuth } from "@/context/AuthContext";
 import { AuthModal } from "@/components/AuthModal";
 import { orderService, paymentService, shippingService } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
-import { shippingCompanyService } from "@/services/api-dashboard";
+import { productServiceExtensions, shippingCompanyService } from "@/services/api-dashboard";
 import { paymentMethodService } from "@/services/paymentMethodService";
 import { Checkbox } from "@/components/ui/checkbox";
+import { productService } from "@/services/api";
 
 interface PaymentMethod {
   id: number;
@@ -65,6 +66,48 @@ interface RecipientData {
   cedula: string;
   numeroTelefono: string;
 }
+
+// Función para validar stock
+const validateStock = async (cartItems: any[]) => {
+  try {
+    for (const item of cartItems) {
+      const product = await productService.getProductById(item.id);
+      if (product.stock < item.quantity) {
+        return {
+          valid: false,
+          message: `No hay suficiente stock para ${product.nombre} (Disponible: ${product.stock}, Solicitado: ${item.quantity})`
+        };
+      }
+    }
+    return { valid: true, message: "" };
+  } catch (error) {
+    console.error("Error al validar stock:", error);
+    return {
+      valid: false,
+      message: "Error al verificar el stock de los productos"
+    };
+  }
+};
+
+// Función para actualizar el stock de productos
+const updateProductStock = async (cartItems: any[]) => {
+  try {
+    for (const item of cartItems) {
+      const product = await productService.getProductById(item.id);
+      const newStock = product.stock - item.quantity;
+      
+      // Usar FormData para la actualización
+      const formData = new FormData();
+      formData.append("stock", newStock.toString());
+      
+      await productServiceExtensions.updateProduct(item.id, formData);
+    }
+    return true;
+  } catch (error) {
+    console.error("Error al actualizar stock:", error);
+    return false;
+  }
+};
 
 const Checkout = () => {
   const navigate = useNavigate();
@@ -249,12 +292,23 @@ const Checkout = () => {
       }
     }
 
+    // Validar stock antes de crear el pedido
+    const stockValidation = await validateStock(cart);
+    if (!stockValidation.valid) {
+      toast({
+        title: "Stock insuficiente",
+        description: stockValidation.message,
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       // Calculate order total
       const subtotal = getCartTotalSinDescuento();
-      const shippingCost = deliveryMethod === "pickup" ? 0 : 
-                         deliveryMethod === "local_shipping" ? 5.99 : 10.99;
-      const orderTotal = subtotal + shippingCost;
+
+      const orderTotal = subtotal;
 
       // Create order
       const orderItems = cart.map(item => ({
@@ -272,6 +326,16 @@ const Checkout = () => {
 
       const orderResponse = await orderService.createOrder(orderData);
       const orderId = orderResponse.id;
+
+      // Actualizar el stock de los productos
+      const stockUpdated = await updateProductStock(cart);
+      if (!stockUpdated) {
+        toast({
+          title: "Advertencia",
+          description: "El pedido se creó pero hubo un error al actualizar el stock de los productos",
+          variant: "default",
+        });
+      }
 
       // Process payment
       const paymentBase = {
@@ -305,7 +369,7 @@ const Checkout = () => {
         pedidoId: orderId,
         direccionEmpresa: shippingAddressText,
         metodoDeEntrega: deliveryMethod === "pickup" ? "Retiro en tienda" : 
-                         deliveryMethod === "local_shipping" ? "Envio local" : "Envio nacional",
+                         deliveryMethod === "local_shipping" ? "Delivery" : "Envio nacional",
         ...(deliveryMethod === "national_shipping" && { 
           empresaId: parseInt(shippingCompany, 10) 
         })
