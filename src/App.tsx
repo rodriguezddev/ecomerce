@@ -50,6 +50,7 @@ import PaymentMethodList from "./components/dashboard/paymentMethods/PaymentMeth
 import PaymentMethodCreate from "./components/dashboard/paymentMethods/PaymentMethodCreate";
 import PaymentMethodDetail from "./components/dashboard/paymentMethods/PaymentMethodDetail";
 import CategoryDetail from "./components/dashboard/categories/CategoryDetail";
+import ProductCreate from "./components/dashboard/products/ProductCreate";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -106,7 +107,7 @@ function App() {
                   <Route path="categorias/nueva" element={<CategoryForm />} />
                   <Route path="categorias/editar/:id" element={<CategoryForm />} />
                   <Route path="productos" element={<ProductList />} />
-                  <Route path="productos/nuevo" element={<ProductForm />} />
+                  <Route path="productos/nuevo" element={<ProductCreate />} />
                   <Route path="productos/:id" element={<ProductDetailsDashboard />} />
                   <Route path="productos/editar/:id" element={<ProductForm />} />
                   <Route path="reportes" element={<ReportsPanel />} />

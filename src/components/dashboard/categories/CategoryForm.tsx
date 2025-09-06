@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Save, Loader2 } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
 
 const categorySchema = z.object({
   nombre: z.string().min(1, "El nombre es requerido").regex(/^[a-zA-Z\sáéíóúÁÉÍÓÚñÑüÜ]+$/, "El nombre solo puede contener letras y espacios"),

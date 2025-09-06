@@ -129,29 +129,6 @@ export default function CategoryDetail() {
           </Button>
           <h1 className="text-3xl font-bold">Detalles de la Categoría</h1>
         </div>
-        <div className="flex gap-2">
-          {activeTab === "edit" ? (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setActiveTab("view")}
-              >
-                <X className="mr-2 h-4 w-4" /> Cancelar
-              </Button>
-              <Button
-                onClick={form.handleSubmit(onSubmit)}
-                disabled={updateMutation.isPending}
-              >
-                {updateMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                <Save className="mr-2 h-4 w-4" /> Guardar
-              </Button>
-            </>
-          ) : (
-            <div></div>
-          )}
-        </div>
       </div>
 
       <Form {...form}>
@@ -305,6 +282,30 @@ export default function CategoryDetail() {
           </Tabs>
         </form>
       </Form>
+
+      <div className="flex gap-2 justify-between">
+          {activeTab === "edit" ? (
+            <>
+              <Button
+                variant="cancel"
+                onClick={() => setActiveTab("view")}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={form.handleSubmit(onSubmit)}
+                disabled={updateMutation.isPending}
+              >
+                {updateMutation.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                <Save className="mr-2 h-4 w-4" /> Guardar
+              </Button>
+            </>
+          ) : (
+            <div></div>
+          )}
+        </div>
     </div>
   );
 }

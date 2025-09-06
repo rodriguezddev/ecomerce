@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -28,7 +28,6 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import { productServiceExtensions } from "@/services/api-dashboard";
-import useEffect from 'react';
 
 const productSchema = z.object({
   nombre: z
@@ -400,7 +399,7 @@ export default function ProductForm({ onSuccess }: ProductFormProps) {
         <div className="flex justify-end space-x-2">
           <Button
             type="button"
-            variant="outline"
+            variant="cancel"
             onClick={() => navigate("/dashboard/productos")}
           >
             Cancelar

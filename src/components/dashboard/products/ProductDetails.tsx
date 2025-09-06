@@ -233,36 +233,7 @@ export default function ProductDetails() {
           </Button>
           <h1 className="text-3xl font-bold">Detalles del Producto</h1>
         </div>
-        <div className="flex gap-2">
-          {isEditing ? (
-            <>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setIsEditing(false);
-                  form.reset();
-                  setImageFile(null);
-                  if (product.image) {
-                    setImagePreview(
-                      `${import.meta.env.VITE_API_URL}imagenes/${product.image}`
-                    );
-                  }
-                }}
-              >
-                <X className="mr-2 h-4 w-4" /> Cancelar
-              </Button>
-              <Button 
-                onClick={form.handleSubmit(onSubmit)}
-                disabled={form.formState.isSubmitting}
-              >
-                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <Save className="mr-2 h-4 w-4" /> Guardar
-              </Button>
-            </>
-          ) : (
-            <div></div>
-          )}
-        </div>
+        
       </div>
 
       <Form {...form}>
@@ -546,6 +517,37 @@ export default function ProductDetails() {
           </Tabs>
         </form>
       </Form>
+
+      <div className="flex gap-2 justify-between">
+          {isEditing ? (
+            <>
+              <Button 
+                variant="cancel"
+                onClick={() => {
+                  setIsEditing(false);
+                  form.reset();
+                  setImageFile(null);
+                  if (product.image) {
+                    setImagePreview(
+                      `${import.meta.env.VITE_API_URL}imagenes/${product.image}`
+                    );
+                  }
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={form.handleSubmit(onSubmit)}
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Save className="mr-2 h-4 w-4" /> Guardar
+              </Button>
+            </>
+          ) : (
+            <div></div>
+          )}
+        </div>
     </div>
   );
 }

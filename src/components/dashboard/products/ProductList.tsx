@@ -5,7 +5,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search, Trash2, Eye, DollarSign, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
-import { Link } from "react-router-dom"
+import { Link, useNavigate } from "react-router-dom"; // Agregar useNavigate
 import { useToast } from "@/hooks/use-toast";
 import {
   Card,
@@ -13,8 +13,6 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import ProductForm from "./ProductForm";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -30,11 +28,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function ProductList() {
   const { toast } = useToast();
+  const navigate = useNavigate(); // Agregar navigate
   const [searchTerm, setSearchTerm] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [productToDelete, setProductToDelete] = useState<number | null>(null);
   const [bdvPrice, setBdvPrice] = useState<number | null>(null);
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -112,14 +110,7 @@ export default function ProductList() {
     }
   };
 
-  const handleCreateSuccess = () => {
-    setIsCreateDialogOpen(false);
-    refetch();
-    toast({
-      title: "Producto creado",
-      description: "El producto se ha creado correctamente",
-    });
-  };
+  // Eliminada la función handleCreateSuccess ya que no se usa con modal
 
   const filteredProducts = data?.filter((product: Product) => 
     product.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -215,17 +206,12 @@ export default function ProductList() {
           />
         </div>
         
-        <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Nuevo Producto
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-3xl">
-            <DialogTitle>Crear Nuevo Producto</DialogTitle>
-            <ProductForm onSuccess={handleCreateSuccess} />
-          </DialogContent>
-        </Dialog>
+        {/* Cambiar el botón para redirigir a la vista de creación */}
+        <Button asChild>
+          <Link to="/dashboard/productos/nuevo">
+            <Plus className="mr-2 h-4 w-4" /> Nuevo Producto
+          </Link>
+        </Button>
       </div>
       
       <Card>

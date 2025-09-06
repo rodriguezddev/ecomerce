@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Save, X, Loader2, Pencil, Eye, Badge, DollarSign, CreditCard, Mail, Phone, User, FileText, Building, Lock } from "lucide-react";
+import { ArrowLeft, Save, X, Loader2, Pencil, Eye, DollarSign, CreditCard, Mail, Phone, User, FileText, Building, Lock } from "lucide-react";
 import { useForm } from "react-hook-form";
 import {
   Form,
@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 
 const paymentMethodSchema = z
   .object({
@@ -336,29 +337,7 @@ export default function PaymentMethodDetail() {
           </Button>
           <h1 className="text-3xl font-bold">Detalles del Método de Pago</h1>
         </div>
-        <div className="flex gap-2">
-          {activeTab === "edit" ? (
-            <>
-              <Button
-                variant="outline"
-                onClick={() => setActiveTab("view")}
-              >
-                <X className="mr-2 h-4 w-4" /> Cancelar
-              </Button>
-              <Button
-                onClick={form.handleSubmit(onSubmit)}
-                disabled={updateMutation.isPending}
-              >
-                {updateMutation.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                <Save className="mr-2 h-4 w-4" /> Guardar
-              </Button>
-            </>
-          ) : (
-            <div></div>
-          )}
-        </div>
+        
       </div>
 
       <Form {...form}>
@@ -734,6 +713,30 @@ export default function PaymentMethodDetail() {
           </Tabs>
         </form>
       </Form>
+
+      <div className="flex gap-2 justify-between">
+          {activeTab === "edit" ? (
+            <>
+              <Button
+                variant="cancel"
+                onClick={() => setActiveTab("view")}
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={form.handleSubmit(onSubmit)}
+                disabled={updateMutation.isPending}
+              >
+                {updateMutation.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                <Save className="mr-2 h-4 w-4" /> Guardar
+              </Button>
+            </>
+          ) : (
+            <div></div>
+          )}
+        </div>
     </div>
   );
 }

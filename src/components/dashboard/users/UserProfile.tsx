@@ -185,13 +185,13 @@ export default function UserProfile() {
           {isEditing ? (
             <div className="flex gap-2">
               <Button 
-                variant="outline" 
+                variant="cancel"
                 onClick={() => {
                   setIsEditing(false);
                   form.reset();
                 }}
               >
-                <X className="mr-2 h-4 w-4" /> Cancelar
+                Cancelar
               </Button>
               <Button 
                 onClick={form.handleSubmit(onSubmit)}

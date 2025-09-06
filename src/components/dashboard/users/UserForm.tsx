@@ -267,7 +267,7 @@ export default function UserForm({ onSuccess }: UserFormProps) {
           <div className="flex justify-between items-center">
             <Button
               type="button"
-              variant="outline"
+              variant="cancel"
               onClick={() => navigate("/dashboard/usuarios")}
             >
               Cancelar
