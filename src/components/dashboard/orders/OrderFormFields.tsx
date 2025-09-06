@@ -47,6 +47,7 @@ export default function OrderFormFields({
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {!isEditing && (
         <FormField
           control={form.control}
           name="tipoDePedido"
@@ -72,6 +73,7 @@ export default function OrderFormFields({
             </FormItem>
           )}
         />
+        )}
 
         <FormField
           control={form.control}
@@ -176,7 +178,7 @@ export default function OrderFormFields({
       </div>
 
       <Separator />
-
+{!isEditing && (
       <ProductSelector 
         form={form}
         isEditing={isEditing}
@@ -188,6 +190,7 @@ export default function OrderFormFields({
         handleProductSelection={handleProductSelection}
         handleQuantityChange={handleQuantityChange}
       />
+)}
     </>
   );
 }

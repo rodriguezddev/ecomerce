@@ -595,35 +595,7 @@ export default function OrderForm() {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)}>
             <CardContent className="space-y-4">
-              {isEditing ? (
-                // En modo edición, solo mostramos los campos de estado y pago
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Estado de pago</label>
-                    <select 
-                      className="w-full p-2 border rounded-md"
-                      {...form.register("pagado")}
-                    >
-                      <option value="false">Pendiente de pago</option>
-                      <option value="true">Pagado</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium">Estado de envío</label>
-                    <select 
-                      className="w-full p-2 border rounded-md"
-                      {...form.register("estado")}
-                    >
-                      <option value="Pedido en verificacion de pago">En verificación de pago</option>
-                      <option value="Pedido en proceso de empaquetado">En proceso de empaquetado</option>
-                      <option value="Pedido en camino">En camino</option>
-                      <option value="Pedido entregado">Entregado</option>
-                      <option value="Cancelado">Cancelado</option>
-                    </select>
-                  </div>
-                </div>
-              ) : (
-                // En modo creación, mostramos todos los campos
+
                 <OrderFormFields 
                   form={form}
                   profiles={profiles || []}
@@ -636,7 +608,7 @@ export default function OrderForm() {
                   handleProductSelection={handleProductSelection}
                   handleQuantityChange={handleQuantityChange}
                 />
-              )}
+            
               
               {!isEditing && (
                 <PaymentSection
