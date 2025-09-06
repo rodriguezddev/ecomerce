@@ -245,6 +245,8 @@ export default function OrderForm() {
       const originalQuantity = initialValues.items[index]?.cantidad || 0;
       const quantityDifference = quantity - originalQuantity;
 
+      console.log(quantity, originalQuantity)
+
       if (quantityDifference > 0) { // Solo validamos si estamos aumentando la cantidad
         try {
           const product = await productService.getProductById(productId);

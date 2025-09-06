@@ -246,9 +246,9 @@ export default function PaymentList() {
                               variant="ghost"
                               size="icon"
                               onClick={() =>
-                                handleViewImage(payment.comprobanteDePago)
+                                handleViewImage(payment.image)
                               }
-                              disabled={!payment.comprobanteDePago}
+                              disabled={!payment.image}
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
