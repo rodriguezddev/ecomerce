@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { authService, profileService, userService } from "@/services/api";
+import { authService, productService, profileService, userService } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import {
@@ -36,7 +37,8 @@ import {
   Eye,
   EyeOff,
   CreditCard,
-  Home
+  Home,
+  Send
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -99,14 +101,40 @@ const Profile = () => {
     },
   });
 
+  useEffect(() => {
+    if (isEditing) {
+      setActiveTab("edit");
+    } else {
+      setActiveTab("view");
+    }
+  }, [isEditing]);
+
+    const { data, isLoading, isError, error, refetch } = useQuery({
+  queryKey: ["user", user?.perfil?.id],
+  queryFn: async () => {
+    try {
+      if (!user?.perfil?.id) {
+        throw new Error("ID de perfil no disponible");
+      }
+      return await profileService.getProfileById(user.perfil.id);
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+      throw error;
+    }
+  },
+  enabled: !!user?.perfil?.id, // Importante: evita ejecución con ID 0
+});
+    console.log(data)
+
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      cedula: "",
-      numeroTelefono: "",
-      nombre: "",
-      apellido: "",
-      direccion: ""
+      cedula: data?.cedula || "",
+      numeroTelefono: data?.numeroTelefono || data?.telefono || "",
+      nombre: data?.nombre || "",
+      apellido: data?.apellido || "",
+      direccion: data?.direccion || "",
+      email: user?.email || "",
     },
   });
 
@@ -129,11 +157,12 @@ const Profile = () => {
     if (user?.perfil) {
       // Pre-populate the form with user data
       profileForm.reset({
-        nombre: user.perfil.nombre || "",
-        apellido: user.perfil.apellido || "",
-        numeroTelefono: user.perfil.numeroTelefono || user.perfil.telefono || "",
-        direccion: user.perfil.direccion || "",
-        cedula: user.perfil.cedula || "",
+        cedula: data?.cedula || "",
+        numeroTelefono: data?.numeroTelefono || data?.telefono || "",
+        nombre: data?.nombre || "",
+        apellido: data?.apellido || "",
+        direccion: data?.direccion || "",
+        email: data?.usuario?.email || "",
       });
     }
 
@@ -162,8 +191,8 @@ const Profile = () => {
 
       // Update profile in the backend
       await profileService.updateProfile(user.perfil.id, data);
-
-      // Update local context
+      await userService.updateUser(user.perfil.id, {email: data.email});
+      // Update local co ntext
       updateProfile({
         ...user.perfil,
         ...data
@@ -176,12 +205,17 @@ const Profile = () => {
 
       setIsEditing(false);
     } catch (error) {
-      console.error("Error updating profile:", error);
+      console.error("Error al crear producto:", (error as Error)?.message);
+      const oraciones = (error as Error)?.message.split('.').filter(oracion => oracion.trim().length > 0);
+      
       toast({
-        title: "Error al actualizar perfil",
-        description: "No se pudo actualizar la información. Por favor, intente nuevamente.",
+        title: "Error",
+        description: oraciones.map(oracion => {
+          return <p key={oracion}>● {oracion.trim()}<br/></p>;
+        }),
         variant: "destructive",
       });
+    
     } finally {
       setSaving(false);
     }
@@ -246,31 +280,7 @@ const Profile = () => {
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <h1 className="text-3xl font-bold">Mi Perfil</h1>
-            <div className="ml-auto">
-              {isEditing ? (
-                <div className="flex gap-2">
-                  <Button 
-                    variant="cancel"
-                    onClick={() => {
-                      setIsEditing(false);
-                      profileForm.reset();
-                      passwordForm.reset();
-                    }}
-                  >
-                    <X className="mr-2 h-4 w-4" /> Cancelar
-                  </Button>
-                  <Button 
-                    onClick={profileForm.handleSubmit(onProfileSubmit)}
-                    disabled={saving}
-                  >
-                    {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    <Save className="mr-2 h-4 w-4" /> Guardar
-                  </Button>
-                </div>
-              ) : (
-                <div></div>
-              )}
-            </div>
+            
           </div>
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -290,7 +300,7 @@ const Profile = () => {
                     <CardTitle>Información Personal</CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {user?.perfil ? (
+                    {data ? (
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div className="flex items-center gap-4">
                           <User className="h-5 w-5 text-muted-foreground" />
@@ -303,36 +313,36 @@ const Profile = () => {
                           <FileText className="h-5 w-5 text-muted-foreground" />
                           <div>
                             <p className="text-sm text-muted-foreground">Cédula</p>
-                            <p className="font-medium">{user.perfil.cedula || "No especificada"}</p>
+                            <p className="font-medium">{data?.cedula || "No especificada"}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
                           <Phone className="h-5 w-5 text-muted-foreground" />
                           <div>
                             <p className="text-sm text-muted-foreground">Teléfono</p>
-                            <p className="font-medium">{user.perfil.numeroTelefono || user.perfil.telefono || "No especificado"}</p>
+                            <p className="font-medium">{data?.numeroTelefono || data?.telefono || "No especificado"}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
                           <MapPin className="h-5 w-5 text-muted-foreground" />
                           <div>
                             <p className="text-sm text-muted-foreground">Dirección</p>
-                            <p className="font-medium">{user.perfil.direccion || "No especificada"}</p>
+                            <p className="font-medium">{data?.direccion || "No especificada"}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
                       <Mail className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Email</p>
-                        <p className="font-medium">{user?.email || "N/A"}</p>
+                        <p className="font-medium">{data?.usuario?.email || "N/A"}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
                       <Shield className="h-5 w-5 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Rol</p>
-                        <Badge className={getRoleBadgeColor(user?.rol || "Usuario")}>
-                          {user?.rol || "Usuario"}
+                        <Badge className={getRoleBadgeColor(data?.usuario?.rol || "Usuario")}>
+                          {data?.usuario?.rol || "Usuario"}
                         </Badge>
                       </div>
                     </div>
@@ -411,7 +421,7 @@ const Profile = () => {
                                 <FormControl>
                                   <div className="relative">
                                     <CreditCard className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                                    <Input disabled placeholder="Tu número de cédula" className="pl-10" {...field} />
+                                    <Input placeholder="Tu número de cédula" className="pl-10" {...field} />
                                   </div>
                                 </FormControl>
                                 <FormMessage />
@@ -434,10 +444,23 @@ const Profile = () => {
                               </FormItem>
                             )}
                           />
-                        </div>
 
-                        <Separator />
-
+                          <FormField
+                          control={profileForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <Label>Correo electrónico</Label>
+                              <FormControl>
+                                <div className="relative">
+                                  <Send className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                  <Input placeholder="Tu correo electrónico" className="pl-10" {...field} />
+                                </div>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
                         <FormField
                           control={profileForm.control}
                           name="direccion"
@@ -454,8 +477,21 @@ const Profile = () => {
                             </FormItem>
                           )}
                         />
+                        </div>
+
+
+                        
                       </CardContent>
-                      <CardFooter>
+                      <CardFooter className="flex justify-between gap-2">
+                        <Button 
+                        type="button"
+                    variant="cancel"
+                    onClick={() => {
+                      setIsEditing(false);
+                    }}
+                  >
+                    <X className="mr-2 h-4 w-4" /> Cancelar
+                  </Button>
                         <Button
                           type="submit"
                           className="flex items-center gap-2"

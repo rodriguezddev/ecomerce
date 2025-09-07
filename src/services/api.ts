@@ -361,7 +361,32 @@ export const userService = {
         body: JSON.stringify(userData),
       });
       
-      return await handleResponse(response);
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        let errorMessages: string[] = [];
+
+        // Manejar diferentes formatos de error
+        if (Array.isArray(responseData.message)) {
+          errorMessages = responseData.message;
+        } else if (typeof responseData.message === "string") {
+          errorMessages = [responseData.message];
+        } else if (responseData.error) {
+          errorMessages = [responseData.error];
+        } else if (
+          responseData.body.detail &&
+          typeof responseData.body.detail === "string"
+        ) {
+          // Alternative common error field
+          errorMessages = responseData.body.detail;
+        } else {
+          errorMessages = ["Error desconocido al actualizar el envío"];
+        }
+
+        throw new Error(formatErrorMessage(errorMessages));
+      }
+
+      return responseData
     } catch (error) {
       console.error('Error updating user:', error);
       throw error;
@@ -469,7 +494,33 @@ export const profileService = {
         body: JSON.stringify(profileData),
       });
       
-      return await handleResponse(response);
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        let errorMessages: string[] = [];
+
+        // Manejar diferentes formatos de error
+        if (Array.isArray(responseData.message)) {
+          errorMessages = responseData.message;
+        } else if (typeof responseData.message === "string") {
+          errorMessages = [responseData.message];
+        } else if (responseData.error) {
+          errorMessages = [responseData.error];
+        } else if (
+          responseData.body.detail &&
+          typeof responseData.body.detail === "string"
+        ) {
+          // Alternative common error field
+          errorMessages = responseData.body.detail;
+        } else {
+          errorMessages = ["Error desconocido al actualizar el envío"];
+        }
+
+        throw new Error(formatErrorMessage(errorMessages));
+      }
+      console.log(responseData)
+
+      return responseData
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;
@@ -492,7 +543,32 @@ export const profileService = {
         body: JSON.stringify(profileData),
       });
       
-      return await handleResponse(response);
+      const responseData = await response.json();
+
+      if (!response.ok) {
+        let errorMessages: string[] = [];
+
+        // Manejar diferentes formatos de error
+        if (Array.isArray(responseData.message)) {
+          errorMessages = responseData.message;
+        } else if (typeof responseData.message === "string") {
+          errorMessages = [responseData.message];
+        } else if (responseData.error) {
+          errorMessages = [responseData.error];
+        } else if (
+          responseData.body.detail &&
+          typeof responseData.body.detail === "string"
+        ) {
+          // Alternative common error field
+          errorMessages = responseData.body.detail;
+        } else {
+          errorMessages = ["Error desconocido al actualizar el envío"];
+        }
+
+        throw new Error(formatErrorMessage(errorMessages));
+      }
+
+      return responseData
     } catch (error) {
       console.error('Error updating profile:', error);
       throw error;

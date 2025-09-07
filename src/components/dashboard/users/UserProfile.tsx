@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { userService } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, User, Mail, Shield, FileText, Phone, MapPin, Edit, Save, X } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -181,30 +181,7 @@ export default function UserProfile() {
           <ArrowLeft className="h-4 w-4" />
         </Button>
         <h1 className="text-3xl font-bold">Perfil de Usuario</h1>
-        <div className="ml-auto">
-          {isEditing ? (
-            <div className="flex gap-2">
-              <Button 
-                variant="cancel"
-                onClick={() => {
-                  setIsEditing(false);
-                  form.reset();
-                }}
-              >
-                Cancelar
-              </Button>
-              <Button 
-                onClick={form.handleSubmit(onSubmit)}
-                disabled={form.formState.isSubmitting}
-              >
-                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <Save className="mr-2 h-4 w-4" /> Guardar
-              </Button>
-            </div>
-          ) : (
-            <div></div>
-          )}
-        </div>
+        
       </div>
 
       <Form {...form}>
@@ -435,8 +412,29 @@ export default function UserProfile() {
                       )}
                     />
                   </CardContent>
+
+                  
                 </Card>
+                   
               </div>
+               <div className="flex gap-2 justify-between w-full pt-3">
+              <Button 
+                variant="cancel"
+                onClick={() => {
+                  setIsEditing(false);
+                  form.reset();
+                }}
+              >
+                Cancelar
+              </Button>
+              <Button 
+                onClick={form.handleSubmit(onSubmit)}
+                disabled={form.formState.isSubmitting}
+              >
+                {form.formState.isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                <Save className="mr-2 h-4 w-4" /> Guardar
+              </Button>
+            </div>
             </TabsContent>
           </Tabs>
         </form>

@@ -263,7 +263,7 @@ const handleViewImage = (pagos: any[] | null) => {
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
-                            <Button variant="ghost" size="icon" asChild>
+                            {/* <Button variant="ghost" size="icon" asChild>
                               <Link to={`/dashboard/pagos/editar/${payment.numeroReferencia}`}>
                                 <Edit className="h-4 w-4" />
                               </Link>
@@ -295,7 +295,7 @@ const handleViewImage = (pagos: any[] | null) => {
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
-                            </AlertDialog>
+                            </AlertDialog> */}
                           </div>
                         </TableCell>
                       </TableRow>

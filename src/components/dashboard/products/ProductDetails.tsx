@@ -513,13 +513,8 @@ export default function ProductDetails() {
                   </CardContent>
                 </Card>
               </div>
-            </TabsContent>
-          </Tabs>
-        </form>
-      </Form>
-
-      <div className="flex gap-2 justify-between">
-          {isEditing ? (
+              <div className="flex gap-2 justify-between pt-3">
+         
             <>
               <Button 
                 variant="cancel"
@@ -544,10 +539,13 @@ export default function ProductDetails() {
                 <Save className="mr-2 h-4 w-4" /> Guardar
               </Button>
             </>
-          ) : (
-            <div></div>
-          )}
         </div>
+            </TabsContent>
+          </Tabs>
+        </form>
+      </Form>
+
+      
     </div>
   );
 }

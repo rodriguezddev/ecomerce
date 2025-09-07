@@ -41,7 +41,7 @@ interface UserFormProps {
   onSuccess?: () => void;
 }
 
-export default function UserForm({ onSuccess }: UserFormProps) {
+export default function UserForm({ onSuccess, setOpen }: UserFormProps) {
   const { toast } = useToast();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("user");
@@ -260,7 +260,7 @@ export default function UserForm({ onSuccess }: UserFormProps) {
                     />
                   </div>
                 </CardContent>
-              </Card>
+              </Card> 
             </TabsContent>
           </Tabs>
 
@@ -268,7 +268,7 @@ export default function UserForm({ onSuccess }: UserFormProps) {
             <Button
               type="button"
               variant="cancel"
-              onClick={() => navigate("/dashboard/usuarios")}
+              onClick={() => setOpen(false )}
             >
               Cancelar
             </Button>

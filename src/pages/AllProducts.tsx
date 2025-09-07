@@ -75,8 +75,8 @@ const AllProducts = () => {
 
   // Filtrar productos por categoría
   const filteredProducts = selectedCategory === "all" 
-    ? products 
-    : products.filter(product => product.categoria.id === selectedCategory);
+    ? products.filter(product => product.stock > 0)
+    : products.filter(product => product.categoria.id === selectedCategory  && product.stock > 0);
 
   // Ordenar productos basado en la opción seleccionada
   const sortedProducts = [...filteredProducts].sort((a, b) => {
@@ -318,22 +318,6 @@ const AllProducts = () => {
                         <ShoppingCart size={16} className="mr-1" />
                         Agregar al carrito
                       </Button>
-                      <div className="flex items-center space-x-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 rounded-full"
-                        >
-                          <Heart size={16} />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 rounded-full"
-                        >
-                          <BarChart2 size={16} />
-                        </Button>
-                      </div>
                     </div>
                   </CardContent>
                 </Card>

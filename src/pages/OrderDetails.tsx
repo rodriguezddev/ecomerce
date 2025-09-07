@@ -387,20 +387,7 @@ const OrderDetails = () => {
                           )}
                         </div>
                         
-                        {/* Botón para ver la foto de la guía si existe */}
-                        {order.envios[0].fotoGuia && (
-                          <div className="mt-4">
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => openImageModal(order.envios[0].fotoGuia!)}
-                              className="flex items-center gap-2"
-                            >
-                              <ImageIcon className="h-4 w-4" />
-                              Ver foto de la guía
-                            </Button>
-                          </div>
-                        )}
+                        
                       </div>
                     </div>
                     </div>

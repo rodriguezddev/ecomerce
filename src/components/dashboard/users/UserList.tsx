@@ -145,7 +145,7 @@ export default function UserList() {
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-3xl">
-            <UserForm onSuccess={handleCreateSuccess}  />
+            <UserForm setOpen={setIsCreateDialogOpen} onSuccess={handleCreateSuccess}  />
           </DialogContent>
         </Dialog>
       </div>

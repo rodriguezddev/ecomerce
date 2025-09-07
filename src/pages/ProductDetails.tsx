@@ -210,7 +210,7 @@ const ProductDetails = () => {
               {/* Stock status */}
               <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium mb-6 ${product.disponible ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
                 <span className={`w-2 h-2 rounded-full mr-2 ${product.disponible ? "bg-green-500" : "bg-red-500"}`}></span>
-                {product.disponible ? "In Stock" : "Out of Stock"}
+                {product.disponible ? "Disponible" : "No disponible"}
               </div>
             </div>
 
@@ -244,7 +244,7 @@ const ProductDetails = () => {
                 onClick={handleAddToCart}
               >
                 <ShoppingCart size={18} className="mr-2" />
-                Add to Cart
+                Agregar al carrito
               </Button>
              
             </div>

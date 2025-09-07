@@ -41,7 +41,7 @@ import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { AuthModal } from "@/components/AuthModal";
-import { orderService, paymentService, shippingService } from "@/services/api";
+import { orderService, paymentService, profileService, shippingService } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { productServiceExtensions, shippingCompanyService } from "@/services/api-dashboard";
 import { paymentMethodService } from "@/services/paymentMethodService";
@@ -149,6 +149,22 @@ const Checkout = () => {
     queryFn: paymentMethodService.getPaymentMethods,
   });
 
+      const { data: userEnvio, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["user", user?.perfil?.id],
+    queryFn: async () => {
+      try {
+        if (!user?.perfil?.id) {
+          throw new Error("ID de perfil no disponible");
+        }
+        return await profileService.getProfileById(user.perfil.id);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
+      }
+    },
+    enabled: !!user?.perfil?.id, // Importante: evita ejecución con ID 0
+  });
+
   // Check if cart is empty
   useEffect(() => {
     if (cart.length === 0) {
@@ -163,41 +179,41 @@ const Checkout = () => {
 
   // Pre-fill user data if authenticated
   useEffect(() => {
-    if (isAuthenticated && profile) {
-      setFirstName(profile.nombre || "");
-      setLastName(profile.apellido || "");
-      setAddress(profile.direccion || "");
+    if (isAuthenticated && userEnvio) {
+      setFirstName(userEnvio.nombre || "");
+      setLastName(userEnvio.apellido || "");
+      setAddress(userEnvio.direccion || "");
       
       // Pre-fill datos de quien retira con los datos del perfil
       setDatosQuienRetira({
-        nombre: profile.nombre || "",
-        apellido: profile.apellido || "",
-        cedula: profile.cedula || "",
-        numeroTelefono: profile.numeroTelefono || "",
+        nombre: userEnvio.nombre || "",
+        apellido: userEnvio.apellido || "",
+        cedula: userEnvio.cedula || "",
+        numeroTelefono: userEnvio.numeroTelefono || "",
       });
     } else if (!isAuthenticated) {
       setIsAuthModalOpen(true);
     }
-  }, [isAuthenticated, profile]);
+  }, [isAuthenticated, userEnvio]);
 
   // Actualizar datos de quien retira cuando cambia la opción "usarDatosCliente"
   useEffect(() => {
-    if (usarDatosCliente && profile) {
+    if (usarDatosCliente && userEnvio) {
       setDatosQuienRetira({
-        nombre: profile.nombre || "",
-        apellido: profile.apellido || "",
-        cedula: profile.cedula || "",
-        numeroTelefono: profile.numeroTelefono || "",
+        nombre: userEnvio.nombre || "",
+        apellido: userEnvio.apellido || "",
+        cedula: userEnvio.cedula || "",
+        numeroTelefono: userEnvio.numeroTelefono || "",
       });
     } else {
       setDatosQuienRetira({
-        nombre: "",
-        apellido: "",
-        cedula: "",
-        numeroTelefono: "",
+        nombre: userEnvio?.nombre || "",
+        apellido: userEnvio?.apellido || "",
+        cedula: userEnvio?.cedula || "",
+        numeroTelefono: userEnvio?.numeroTelefono || "",
       });
     }
-  }, [usarDatosCliente, profile]);
+  }, [usarDatosCliente, userEnvio]);
 
   const handleVoucherChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -566,9 +582,9 @@ const Checkout = () => {
                     ) : (
                       <div className="bg-muted p-4 rounded-md">
                         <h4 className="font-medium mb-2">Tus datos:</h4>
-                        <p><strong>Nombre:</strong> {profile?.nombre} {profile?.apellido}</p>
-                        <p><strong>Cédula:</strong> {profile?.cedula || 'No especificada'}</p>
-                        <p><strong>Teléfono:</strong> {profile?.numeroTelefono || 'No especificado'}</p>
+                        <p><strong>Nombre:</strong> {userEnvio?.nombre} {userEnvio?.apellido}</p>
+                        <p><strong>Cédula:</strong> {userEnvio?.cedula || 'No especificada'}</p>
+                        <p><strong>Teléfono:</strong> {userEnvio?.numeroTelefono || 'No especificado'}</p>
                       </div>
                     )}
                   </CardContent>

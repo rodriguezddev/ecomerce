@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { apiBcv } from "@/services/api";
+import { toast } from "@/hooks/use-toast";
 
 // Static offers
 const offers = [
@@ -33,7 +34,7 @@ const SpecialOffers = () => {
 
   // Get discounted products for special offers
   const discountedProducts = products
-    .filter(product => product.descuento > 0)
+    .filter(product => product.descuento > 0 && product.stock > 0)
     .sort((a, b) => b.descuento - a.descuento)
     .slice(0, 2);
 
@@ -86,15 +87,13 @@ const SpecialOffers = () => {
 
   return (
     <section className="mb-12">
-
-
       {/* Featured Discounted Products */}
       {discountedProducts.length > 0 && (
         <div className="mt-10">
-          <h3 className="text-xl font-semibold mb-4">Productos con Descuentos Más Altos</h3>
+          <h3 className="text-xl fo nt-semibold mb-4">Productos con Descuentos Más Altos</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             {discountedProducts.map(product => (
-              <Card key={product.id} className="flex overflow-hidden shadow-sm hover:shadow-md">
+                <Card key={product.id} className="flex overflow-hidden shadow-sm hover:shadow-md">
                 <div className="w-1/3">
                   <Link to={`/producto/${product.id}`}>
                     <img

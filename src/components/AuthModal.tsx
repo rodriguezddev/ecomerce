@@ -86,10 +86,13 @@ export function AuthModal({ isOpen, onOpenChange, initialMode = "login" }: AuthM
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isRecoveryOpen, setIsRecoveryOpen] = useState(false);
+  const [userId, setUserId] = useState('');
   
   // const [isLoading, setIsLoading] = useState(false); // Replaced by isSubmitting for consistency
   const { login, register, updateProfile } = useAuth();
   const { toast } = useToast();
+
+  
 
     const recoveryForm = useForm<RecoveryFormValues>({
     resolver: zodResolver(recoverySchema),
@@ -131,6 +134,7 @@ export function AuthModal({ isOpen, onOpenChange, initialMode = "login" }: AuthM
       if (success) {
         onOpenChange(false);
         loginForm.reset();
+        setUserId(success.profileId);
       }
     } finally {
       setIsSubmitting(false);
@@ -155,7 +159,8 @@ export function AuthModal({ isOpen, onOpenChange, initialMode = "login" }: AuthM
         }
       };
   
-      await authService.register(profileToRegister as z.infer<typeof registerSchema>);
+      const data = await authService.register(profileToRegister as z.infer<typeof registerSchema>);
+      setUserId(data.profileId);
       toast({
         title: "Registro exitoso",
         description: "Tu cuenta ha sido creada",
@@ -201,6 +206,8 @@ export function AuthModal({ isOpen, onOpenChange, initialMode = "login" }: AuthM
       setIsSubmitting(false);
     }
   };
+
+
 
   return (
     <>

@@ -221,7 +221,7 @@ const Cart = () => {
                 </div>
 
                 <Link to="/checkout">
-                  <Button className="w-full">Ir al checkout</Button>
+                  <Button className="w-full">Ir al resumen de compra</Button>
                 </Link>
 
                 <div className="text-center mt-6">

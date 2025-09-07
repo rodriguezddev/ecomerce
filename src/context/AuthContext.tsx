@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { authService, User, Profile } from "@/services/api";
+import { authService, User, Profile, profileService } from "@/services/api";
 
 interface AuthContextType {
   user: User | null;
@@ -54,18 +54,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           email: username, // Fallback as email if needed
           rol: response.rol,
           perfil: {
-            nombre: "User",
-            apellido: "",
-            direccion: "",
-            cedula: "",
-            numeroTelefono: "",
+            nombre:  "",
+            apellido:  "",
+            direccion:  "",
+            cedula:  "",
+            numeroTelefono:  "",
             id: response.profileId
           },
           token: response.tokens.accessToken,
           refreshToken: response.refreshToken
         };
+setUser(loggedInUser);
         
-        setUser(loggedInUser);
         
         // Store the user in localStorage with the token
         localStorage.setItem('user', JSON.stringify(loggedInUser));

@@ -96,19 +96,6 @@ const shipmentFormSchema = z
       path: ["direccionEmpresa"],
     }
   )
-  .refine(
-    (data) => {
-      // Validar que para envío nacional se tenga número de guía al enviar
-      if (data.metodoDeEntrega === "Envio nacional") {
-        return data.numeroDeGuia && data.numeroDeGuia.trim().length > 0;
-      }
-      return true;
-    },
-    {
-      message: "El número de guía es requerido para envío nacional",
-      path: ["numeroDeGuia"],
-    }
-  );
 
 type ShipmentFormValues = z.infer<typeof shipmentFormSchema>;
 
@@ -616,6 +603,29 @@ export default function ShipmentForm() {
               )}
             />
 
+            {
+              (metodoDeEntrega === "Delivery" ) && (
+                 <FormField
+                control={form.control}
+                name="direccionEmpresa"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      Dirección a domicilio *
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        {...field} 
+                        placeholder={"Ingrese la dirección completa para la entrega a domicilio"}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              )
+            }
+
             {metodoDeEntrega === "Envio nacional" && (
               <>
                 {/* Sección de datos del destinatario */}
@@ -744,13 +754,38 @@ export default function ShipmentForm() {
                   )}
                 />
 
+                 <FormField
+                control={form.control}
+                name="direccionEmpresa"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>
+                      {metodoDeEntrega === "Envio nacional" 
+                        ? "Dirección exacta de la sucursal *" 
+                        : "Dirección a domicilio *"}
+                    </FormLabel>
+                    <FormControl>
+                      <Textarea 
+                        {...field} 
+                        placeholder={
+                          metodoDeEntrega === "Envio nacional" 
+                            ? "Ingrese la dirección exacta de la sucursal de envío" 
+                            : "Ingrese la dirección completa para la entrega a domicilio"
+                        }
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
                 <FormField
                   control={form.control}
                   name="numeroDeGuia"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Número de Guía *</FormLabel>
-                      <FormControl>
+                      <FormControl> 
                         <Input
                           {...field}
                           placeholder="Ingrese el número de guía (requerido para envío nacional)"
@@ -810,33 +845,7 @@ export default function ShipmentForm() {
               </>
             )}
 
-            {/* Mostrar dirección de empresa solo para Envio nacional y Delivery */}
-            {(metodoDeEntrega === "Envio nacional" || metodoDeEntrega === "Delivery") && (
-              <FormField
-                control={form.control}
-                name="direccionEmpresa"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>
-                      {metodoDeEntrega === "Envio nacional" 
-                        ? "Dirección exacta de la sucursal *" 
-                        : "Dirección a domicilio *"}
-                    </FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        {...field} 
-                        placeholder={
-                          metodoDeEntrega === "Envio nacional" 
-                            ? "Ingrese la dirección exacta de la sucursal de envío" 
-                            : "Ingrese la dirección completa para la entrega a domicilio"
-                        }
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            
           </CardContent>
 
           <CardFooter className="flex justify-between">

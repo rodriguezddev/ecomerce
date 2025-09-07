@@ -269,10 +269,10 @@ export default function ProductList() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col">
-                            <span className={tieneDescuento ? "line-through text-gray-500 text-sm" : ""}>
+                            <span className={tieneDescuento  > 0 ? "line-through text-gray-500 text-sm" : ""}>
                               {product.precio?.toFixed(2)} $
                             </span>
-                            {tieneDescuento && (
+                            {tieneDescuento > 0 && (
                               <span className="font-medium">
                                 {precioConDescuento.toFixed(2)} $
                                 <span className="text-xs text-green-600 ml-1">
@@ -284,10 +284,10 @@ export default function ProductList() {
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-col">
-                            <span className={tieneDescuento ? "line-through text-gray-500 text-sm" : ""}>
+                            <span className={tieneDescuento  > 0 ? "line-through text-gray-500 text-sm" : ""}>
                               {precioOriginalBs.toFixed(2)} Bs
                             </span>
-                            {tieneDescuento && (
+                            {tieneDescuento > 0 && (
                               <span className="font-medium">
                                 {precioBs.toFixed(2)} Bs
                               </span>
@@ -308,7 +308,7 @@ export default function ProductList() {
                             </span>
                           )}
                         </TableCell>
-                        <TableCell>{product.disponible ? "Sí" : "No"}</TableCell>
+                        <TableCell>{product.stock > 0 ? "Sí" : "No"}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button variant="ghost" size="icon" asChild>
