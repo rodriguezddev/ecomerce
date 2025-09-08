@@ -455,7 +455,7 @@ const OrderDetails = () => {
             <div className="flex justify-center">
               {currentImage && (
                 <img 
-                  src={currentImage} 
+                  src={`${import.meta.env.VITE_API_URL}imagenes/${currentImage}` }
                   alt="Foto de la guía de envío" 
                   className="max-w-full h-auto rounded-md"
                 />
