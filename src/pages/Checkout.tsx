@@ -428,10 +428,10 @@ const Checkout = () => {
       // Agregar datos de quien retira si es retiro en tienda
       if (deliveryMethod === "national_shipping") {
         if (usarDatosCliente) {
-          shippingData.destinatarioNombre = profile?.nombre || "";
-          shippingData.destinatarioApellido = profile?.apellido || "";
-          shippingData.destinatarioCedula = profile?.cedula || "";
-          shippingData.destinatarioTelefono = profile?.numeroTelefono || "";
+          shippingData.destinatarioNombre = datosQuienRetira.nombre || "";
+          shippingData.destinatarioApellido = datosQuienRetira?.apellido || "";
+          shippingData.destinatarioCedula = datosQuienRetira?.cedula || "";
+          shippingData.destinatarioTelefono = datosQuienRetira?.numeroTelefono || "";
         } else {
           shippingData.destinatarioNombre = datosQuienRetira.nombre;
           shippingData.destinatarioApellido = datosQuienRetira.apellido;
