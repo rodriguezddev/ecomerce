@@ -48,6 +48,9 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 
 // Esquema de validación para el perfil
 const profileSchema = z.object({
+  cedula: z.string()
+    .min(1, "La cédula es requerida")
+    .regex(/^[VEve]?\d{5,9}$/, { message: "Formato de cédula inválido" }),
   nombre: z.string()
     .min(1, "El nombre es requerido")
     .regex(/^[a-zA-Z\s]+$/, { message: "El nombre solo puede contener letras y espacios" }),
@@ -58,6 +61,9 @@ const profileSchema = z.object({
     .min(1, "El número de teléfono es requerido")
     .regex(/^\d{4}-\d{7}$/, { message: "El formato del teléfono debe ser 0414-1234567" }),
   direccion: z.string().min(1, "La dirección es requerida"),
+  email: z.string()
+    .min(1, "El email es requerido")
+    .email({ message: "Por favor ingresa un correo electrónico válido" }),
 });
 
 // Esquema de validación para la contraseña
@@ -109,32 +115,31 @@ const Profile = () => {
     }
   }, [isEditing]);
 
-    const { data, isLoading, isError, error, refetch } = useQuery({
-  queryKey: ["user", user?.perfil?.id],
-  queryFn: async () => {
-    try {
-      if (!user?.perfil?.id) {
-        throw new Error("ID de perfil no disponible");
+  const { data, isLoading, isError, error, refetch } = useQuery({
+    queryKey: ["user", user?.perfil?.id],
+    queryFn: async () => {
+      try {
+        if (!user?.perfil?.id) {
+          throw new Error("ID de perfil no disponible");
+        }
+        return await profileService.getProfileById(user.perfil.id);
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+        throw error;
       }
-      return await profileService.getProfileById(user.perfil.id);
-    } catch (error) {
-      console.error("Error fetching profile:", error);
-      throw error;
-    }
-  },
-  enabled: !!user?.perfil?.id, // Importante: evita ejecución con ID 0
-});
-    console.log(data)
+    },
+    enabled: !!user?.perfil?.id,
+  });
 
   const profileForm = useForm<ProfileFormValues>({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      cedula: data?.cedula || "",
-      numeroTelefono: data?.numeroTelefono || data?.telefono || "",
-      nombre: data?.nombre || "",
-      apellido: data?.apellido || "",
-      direccion: data?.direccion || "",
-      email: user?.email || "",
+      cedula: "",
+      numeroTelefono: "",
+      nombre: "",
+      apellido: "",
+      direccion: "",
+      email: "",
     },
   });
 
@@ -154,7 +159,7 @@ const Profile = () => {
       return;
     }
 
-    if (user?.perfil) {
+    if (data) {
       // Pre-populate the form with user data
       profileForm.reset({
         cedula: data?.cedula || "",
@@ -162,12 +167,12 @@ const Profile = () => {
         nombre: data?.nombre || "",
         apellido: data?.apellido || "",
         direccion: data?.direccion || "",
-        email: data?.usuario?.email || "",
+        email: data?.usuario?.email || user?.email || "",
       });
     }
 
     setLoading(false);
-  }, [isAuthenticated, user, profileForm]);
+  }, [isAuthenticated, user, data, profileForm]);
 
   const handleAuthModalClose = (open: boolean) => {
     setIsAuthModalOpen(open);
@@ -176,74 +181,80 @@ const Profile = () => {
     }
   };
 
-const onProfileSubmit = async (data: ProfileFormValues) => {
-  if (!user?.perfil?.id) {
-    toast({
-      title: "Error",
-      description: "Usuario no identificado. Por favor, inicie sesión nuevamente.",
-      variant: "destructive",
-    });
-    return;
-  }
-
-  try {
-    setSaving(true);
-
-    // Crear payload solo con los campos que han cambiado usando dirtyFields
-    const payload: Partial<ProfileFormValues> = {};
-    
-    if (profileForm.formState.dirtyFields.nombre) payload.nombre = data.nombre;
-    if (profileForm.formState.dirtyFields.apellido) payload.apellido = data.apellido;
-    if (profileForm.formState.dirtyFields.numeroTelefono) payload.numeroTelefono = data.numeroTelefono;
-    if (profileForm.formState.dirtyFields.direccion) payload.direccion = data.direccion;
-    if (profileForm.formState.dirtyFields.email) payload.email = data.email;
-
-    // Si no hay cambios, mostrar mensaje y salir
-    if (Object.keys(payload).length === 0) {
+  const onProfileSubmit = async (data: ProfileFormValues) => {
+    if (!user?.perfil?.id) {
       toast({
-        title: "Sin cambios",
-        description: "No se detectaron cambios para actualizar",
+        title: "Error",
+        description: "Usuario no identificado. Por favor, inicie sesión nuevamente.",
+        variant: "destructive",
       });
-      setIsEditing(false);
       return;
     }
 
-    // Update profile in the backend (solo campos modificados)
-    await profileService.updateProfile(user.perfil.id, payload);
-    
-    // Si el email cambió, actualizar también en el usuario
-    if (payload.email && payload.email !== user.email) {
-      await userService.updateUser(user.perfil.id, { email: payload.email });
+    try {
+      setSaving(true);
+
+      // Crear payload solo con los campos que han cambiado usando dirtyFields
+      const payload: Partial<ProfileFormValues> = {};
+      
+      if (profileForm.formState.dirtyFields.cedula) payload.cedula = data.cedula;
+      if (profileForm.formState.dirtyFields.nombre) payload.nombre = data.nombre;
+      if (profileForm.formState.dirtyFields.apellido) payload.apellido = data.apellido;
+      if (profileForm.formState.dirtyFields.numeroTelefono) payload.numeroTelefono = data.numeroTelefono;
+      if (profileForm.formState.dirtyFields.direccion) payload.direccion = data.direccion;
+      if (profileForm.formState.dirtyFields.email) payload.email = data.email;
+
+      // Si no hay cambios, mostrar mensaje y salir
+      if (Object.keys(payload).length === 0) {
+        toast({
+          title: "Sin cambios",
+          description: "No se detectaron cambios para actualizar",
+        });
+        setIsEditing(false);
+        return;
+      }
+
+      // Update profile in the backend (solo campos modificados)
+      await profileService.updateProfile(user.perfil.id, payload);
+      
+      // Si el email cambió, actualizar también en el usuario
+      if (payload.email && payload.email !== user.email) {
+        await userService.updateUser(user.perfil.id, { email: payload.email });
+      }
+
+      // Update local context
+      updateProfile({
+        ...user.perfil,
+        ...payload
+      });
+
+      // Resetear dirtyFields después de guardar
+      profileForm.reset(data);
+
+      // Forzar recarga de datos desde el servidor
+      await refetch();
+
+      toast({
+        title: "Perfil actualizado",
+        description: "Tu información ha sido actualizada correctamente",
+      });
+
+      setIsEditing(false);
+    } catch (error) {
+      console.error("Error al actualizar perfil:", (error as Error)?.message);
+      const oraciones = (error as Error)?.message.split('.').filter(oracion => oracion.trim().length > 0);
+      
+      toast({
+        title: "Error",
+        description: oraciones.map(oracion => {
+          return <p key={oracion}>● {oracion.trim()}<br/></p>;
+        }),
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
     }
-
-    // Update local context
-    updateProfile({
-      ...user.perfil,
-      ...payload
-    });
-
-
-    toast({
-      title: "Perfil actualizado",
-      description: "Tu información ha sido actualizada correctamente",
-    });
-
-    setIsEditing(false);
-  } catch (error) {
-    console.error("Error al actualizar perfil:", (error as Error)?.message);
-    const oraciones = (error as Error)?.message.split('.').filter(oracion => oracion.trim().length > 0);
-    
-    toast({
-      title: "Error",
-      description: oraciones.map(oracion => {
-        return <p key={oracion}>● {oracion.trim()}<br/></p>;
-      }),
-      variant: "destructive",
-    });
-  } finally {
-    setSaving(false);
-  }
-};
+  };
 
   const handleRecoverySubmit = async (values: RecoveryFormValues) => {
     setIsSubmitting(true);
