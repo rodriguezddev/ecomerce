@@ -220,8 +220,8 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Catálogo por Categoría</CardTitle>
-            <CardDescription>Distribución de Catálogo por categoría</CardDescription>
+            <CardTitle>Productos por Categoría</CardTitle>
+            <CardDescription>Distribución de Productos por Categoría</CardDescription>
           </CardHeader>
           <CardContent className="pt-2">
             <div className="h-80">

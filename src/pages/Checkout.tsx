@@ -41,7 +41,7 @@ import { useCart } from "@/context/CartContext";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { AuthModal } from "@/components/AuthModal";
-import { orderService, paymentService, profileService, shippingService } from "@/services/api";
+import { apiBcv, orderService, paymentService, profileService, shippingService } from "@/services/api";
 import { useQuery } from "@tanstack/react-query";
 import { productServiceExtensions, shippingCompanyService } from "@/services/api-dashboard";
 import { paymentMethodService } from "@/services/paymentMethodService";
@@ -111,7 +111,7 @@ const updateProductStock = async (cartItems: any[]) => {
 
 const Checkout = () => {
   const navigate = useNavigate();
-  const { cart, getCartTotal, clearCart, getCartTotalSinDescuento } = useCart();
+  const { cart, getCartTotal, clearCartCheck, getCartTotalSinDescuento } = useCart();
   const { toast } = useToast();
   const { isAuthenticated, user, profile } = useAuth();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -129,6 +129,28 @@ const Checkout = () => {
   const [lastName, setLastName] = useState("");
   const [address, setAddress] = useState("");
   const [branchOffice, setBranchOffice] = useState("");
+    const [bdvPrice, setBdvPrice] = useState<number | null>(null);
+  
+        useEffect(() => {
+          apiBcv
+            .getBcvPrice()
+            .then((response) => {
+              if (response) {
+                const bcvPrice = response.promedio;
+                setBdvPrice(bcvPrice);
+              } else {
+                console.error("BCV price not found in response");
+              }
+            })
+            .catch((error) => {
+              console.error("Error fetching BCV price:", error);
+              toast({
+                title: "Error de Precio",
+                description: "No se pudo obtener el precio del BCV. Por favor, inténtalo de nuevo más tarde.",
+                variant: "destructive",
+              });
+            });
+        }, []);
   
   // Datos de quien retira el paquete
   const [usarDatosCliente, setUsarDatosCliente] = useState(true);
@@ -426,7 +448,7 @@ const Checkout = () => {
         description: "Su pedido ha sido registrado exitosamente",
       });
 
-      clearCart();
+      clearCartCheck();
       navigate(`/pedidos/${orderId}`);
 
     } catch (error) {
@@ -801,6 +823,12 @@ const Checkout = () => {
                   <span className="text-xl font-bold">
                     ${getCartTotal().toFixed(2)}
                   </span>
+                </div>
+
+                <div className="w-full flex justify-between items-center border-t">
+                  <span className="text-lg font-bold text-gray-600">Total Bs</span>
+                  <span className="text-lg font-bold text-gray-600">Bs {(getCartTotal() * bdvPrice).toFixed(2)}</span>
+                  
                 </div>
                 
                 {/* Submit Button - Visible only on mobile, positioned after order summary */}

@@ -176,50 +176,74 @@ const Profile = () => {
     }
   };
 
-  const onProfileSubmit = async (data: ProfileFormValues) => {
-    if (!user?.perfil?.id) {
+const onProfileSubmit = async (data: ProfileFormValues) => {
+  if (!user?.perfil?.id) {
+    toast({
+      title: "Error",
+      description: "Usuario no identificado. Por favor, inicie sesión nuevamente.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  try {
+    setSaving(true);
+
+    // Crear payload solo con los campos que han cambiado usando dirtyFields
+    const payload: Partial<ProfileFormValues> = {};
+    
+    if (profileForm.formState.dirtyFields.nombre) payload.nombre = data.nombre;
+    if (profileForm.formState.dirtyFields.apellido) payload.apellido = data.apellido;
+    if (profileForm.formState.dirtyFields.numeroTelefono) payload.numeroTelefono = data.numeroTelefono;
+    if (profileForm.formState.dirtyFields.direccion) payload.direccion = data.direccion;
+    if (profileForm.formState.dirtyFields.email) payload.email = data.email;
+
+    // Si no hay cambios, mostrar mensaje y salir
+    if (Object.keys(payload).length === 0) {
       toast({
-        title: "Error",
-        description: "Usuario no identificado. Por favor, inicie sesión nuevamente.",
-        variant: "destructive",
+        title: "Sin cambios",
+        description: "No se detectaron cambios para actualizar",
       });
+      setIsEditing(false);
       return;
     }
 
-    try {
-      setSaving(true);
-
-      // Update profile in the backend
-      await profileService.updateProfile(user.perfil.id, data);
-      await userService.updateUser(user.perfil.id, {email: data.email});
-      // Update local co ntext
-      updateProfile({
-        ...user.perfil,
-        ...data
-      });
-
-      toast({
-        title: "Perfil actualizado",
-        description: "Tu información ha sido actualizada correctamente",
-      });
-
-      setIsEditing(false);
-    } catch (error) {
-      console.error("Error al crear producto:", (error as Error)?.message);
-      const oraciones = (error as Error)?.message.split('.').filter(oracion => oracion.trim().length > 0);
-      
-      toast({
-        title: "Error",
-        description: oraciones.map(oracion => {
-          return <p key={oracion}>● {oracion.trim()}<br/></p>;
-        }),
-        variant: "destructive",
-      });
+    // Update profile in the backend (solo campos modificados)
+    await profileService.updateProfile(user.perfil.id, payload);
     
-    } finally {
-      setSaving(false);
+    // Si el email cambió, actualizar también en el usuario
+    if (payload.email && payload.email !== user.email) {
+      await userService.updateUser(user.perfil.id, { email: payload.email });
     }
-  };
+
+    // Update local context
+    updateProfile({
+      ...user.perfil,
+      ...payload
+    });
+
+
+    toast({
+      title: "Perfil actualizado",
+      description: "Tu información ha sido actualizada correctamente",
+    });
+
+    setIsEditing(false);
+  } catch (error) {
+    console.error("Error al actualizar perfil:", (error as Error)?.message);
+    const oraciones = (error as Error)?.message.split('.').filter(oracion => oracion.trim().length > 0);
+    
+    toast({
+      title: "Error",
+      description: oraciones.map(oracion => {
+        return <p key={oracion}>● {oracion.trim()}<br/></p>;
+      }),
+      variant: "destructive",
+    });
+  } finally {
+    setSaving(false);
+  }
+};
 
   const handleRecoverySubmit = async (values: RecoveryFormValues) => {
     setIsSubmitting(true);
@@ -306,7 +330,7 @@ const Profile = () => {
                           <User className="h-5 w-5 text-muted-foreground" />
                           <div>
                             <p className="text-sm text-muted-foreground">Nombre Completo</p>
-                            <p className="font-medium">{user.perfil.nombre} {user.perfil.apellido}</p>
+                            <p className="font-medium">{data?.nombre} {data?.apellido}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-4">

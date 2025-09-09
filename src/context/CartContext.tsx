@@ -1,4 +1,3 @@
-
 import React, { createContext, useState, useContext, ReactNode, useEffect } from "react";
 import { Product, productService } from "@/services/api";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +9,7 @@ export interface CartItem {
   image: string;
   quantity: number;
   descuento: number;
+  stock: number; // ← Añadir stock al interface CartItem
 }
 
 interface CartContextType {
@@ -21,6 +21,7 @@ interface CartContextType {
   getCartTotal: () => number;
   getCartCount: () => number;
   getCartTotalSinDescuento: () => number;
+  clearCartCheck: () => void;
   products: Product[];
   loading: boolean;
   error: string | null;
@@ -65,23 +66,44 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     const existingItem = cart.find(item => item.id === productId);
 
-    if (existingItem) { // Existing toast, checking for translation
+    if (existingItem) {
+      // Validar stock al añadir más cantidad
+      if (existingItem.quantity + quantity > product.stock) {
+        toast({
+          title: "Stock insuficiente",
+          description: `No hay suficiente stock de ${product.nombre}. Stock disponible: ${product.stock}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
       setCart(cart.map(item =>
         item.id === productId
           ? { ...item, quantity: item.quantity + quantity }
           : item
       ));
       toast({
-        title: "Updated cart",
+        title: "Carrito actualizado",
         description: `La cantidad de ${product.nombre} ha sido actualizada en tu carrito.`,
-      }); // Existing toast, checking for translation
+      });
     } else {
+      // Validar stock al añadir nuevo producto
+      if (quantity > product.stock) {
+        toast({
+          title: "Stock insuficiente",
+          description: `No hay suficiente stock de ${product.nombre}. Stock disponible: ${product.stock}`,
+          variant: "destructive",
+        });
+        return;
+      }
+
       setCart([...cart, {
         id: product.id as number,
         name: product.nombre,
         price: product.precio,
         image: product.image,
         descuento: product.descuento,
+        stock: product.stock, // ← Añadir stock al item del carrito
         quantity: quantity,
       }]);
       toast({
@@ -93,7 +115,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const removeFromCart = (productId: number) => {
     setCart(cart.filter(item => item.id !== productId));
-    toast({ // Existing toast, checking for translation
+    toast({
       title: "Eliminado del carrito",
       description: "El artículo ha sido eliminado de tu carrito.",
     });
@@ -105,6 +127,19 @@ export function CartProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    const item = cart.find(item => item.id === productId);
+    if (!item) return;
+
+    // Validar que la cantidad no supere el stock disponible
+    if (quantity >= item.stock + 1) {
+      toast({
+        title: "Stock insuficiente",
+        description: `No hay suficiente stock de ${item.name}. Stock disponible: ${item.stock}`,
+        variant: "destructive",
+      });
+      return;
+    }
+
     setCart(cart.map(item =>
       item.id === productId ? { ...item, quantity } : item
     ));
@@ -112,27 +147,35 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const clearCart = () => {
     setCart([]);
-    toast({ // Existing toast, checking for translation
+    toast({
       title: "Carrito vaciado",
       description: "Todos los artículos han sido eliminados de tu carrito.",
     });
   };
 
-const getCartTotal = () => {
-  return cart.reduce((total, item) => {
-    const price = item.descuento 
-      ? (item.price - (item.price * (item.descuento / 100)))
-      : item.price;
-    return total + (price * item.quantity);
-  }, 0);
-};
+    const clearCartCheck = () => {
+    setCart([]);
+    toast({
+      title: "Carrito vacío",
+      description: "Tu pedido se está procesando.",
+    });
+  };
 
-const getCartTotalSinDescuento = () => {
-  return cart.reduce((total, item) => {
-    const price = item.price
-    return total + (price * item.quantity);
-  }, 0);
-}
+  const getCartTotal = () => {
+    return cart.reduce((total, item) => {
+      const price = item.descuento 
+        ? (item.price - (item.price * (item.descuento / 100)))
+        : item.price;
+      return total + (price * item.quantity);
+    }, 0);
+  };
+
+  const getCartTotalSinDescuento = () => {
+    return cart.reduce((total, item) => {
+      const price = item.price
+      return total + (price * item.quantity);
+    }, 0);
+  }
 
   const getCartCount = () => {
     return cart.reduce((count, item) => count + item.quantity, 0);
@@ -148,6 +191,7 @@ const getCartTotalSinDescuento = () => {
       getCartTotal,
       getCartCount,
       getCartTotalSinDescuento,
+      clearCartCheck,
       products,
       loading,
       error

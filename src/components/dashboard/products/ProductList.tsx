@@ -302,11 +302,6 @@ export default function ProductList() {
                         </TableCell>
                         <TableCell>
                           {product.categoria?.nombre}
-                          {product.categoria?.descuento && !product.descuento && (
-                            <span className="text-xs text-green-600 ml-1">
-                              ({product.categoria.descuento}% desc.)
-                            </span>
-                          )}
                         </TableCell>
                         <TableCell>{product.stock > 0 ? "Sí" : "No"}</TableCell>
                         <TableCell className="text-right">

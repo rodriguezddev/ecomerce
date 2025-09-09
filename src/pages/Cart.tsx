@@ -1,13 +1,37 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Trash2, ChevronRight, ShoppingCart, Minus, Plus } from "lucide-react";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { apiBcv } from "@/services/api";
+import { toast } from "@/hooks/use-toast";
 
 const Cart = () => {
   const { cart, removeFromCart, updateQuantity, getCartTotal } = useCart();
+  const [bdvPrice, setBdvPrice] = useState<number | null>(null);
+
+      useEffect(() => {
+        apiBcv
+          .getBcvPrice()
+          .then((response) => {
+            if (response) {
+              const bcvPrice = response.promedio;
+              setBdvPrice(bcvPrice);
+            } else {
+              console.error("BCV price not found in response");
+            }
+          })
+          .catch((error) => {
+            console.error("Error fetching BCV price:", error);
+            toast({
+              title: "Error de Precio",
+              description: "No se pudo obtener el precio del BCV. Por favor, inténtalo de nuevo más tarde.",
+              variant: "destructive",
+            });
+          });
+      }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -107,6 +131,7 @@ const Cart = () => {
                                   className="px-3 py-2 text-gray-600 hover:bg-gray-100"
                                   onClick={() => updateQuantity(item.id, item.quantity + 1)}
                                   aria-label="Aumentar cantidad"
+                                  disabled={item.quantity >= item.stock + 1}
                                 >
                                   <Plus size={14} />
                                 </button>
@@ -213,11 +238,18 @@ const Cart = () => {
               <div className="bg-white rounded-lg shadow-sm p-6 sticky top-4">
                 <h2 className="text-lg font-bold mb-4">Resumen del pedido</h2>
 
-                
+                <span className="text-lg font-bold">Bs {(getCartTotal() * bdvPrice).toFixed(2)}</span>
 
-                <div className="flex justify-between mb-6 pt-3 border-t">
+                <div className="flex justify-between mb-3 pt-3 border-t">
                   <span className="text-lg font-bold">Total</span>
                   <span className="text-lg font-bold">${getCartTotal().toFixed(2)}</span>
+                  
+                </div>
+
+                <div className="flex justify-between mb-6 pt-3 border-t">
+                  <span className="text-lg font-bold text-gray-600">Total Bs</span>
+                  <span className="text-lg font-bold text-gray-600">Bs {(getCartTotal() * bdvPrice).toFixed(2)}</span>
+                  
                 </div>
 
                 <Link to="/checkout">

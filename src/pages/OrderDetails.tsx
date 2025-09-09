@@ -358,7 +358,9 @@ const OrderDetails = () => {
                         )}
                       </div>
                     </div>
-                    <div>
+                    {
+                      order.envios[0].metodoDeEntrega !== "Retiro en tienda" && (
+<div>
                       <h3 className="font-medium mb-3 flex items-center gap-2">
                         <User className="h-5 w-5" />
                         Información del destinatario
@@ -390,6 +392,9 @@ const OrderDetails = () => {
                         
                       </div>
                     </div>
+                      )
+                    }
+                    
                     </div>
                     
                   )}
