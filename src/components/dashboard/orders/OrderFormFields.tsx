@@ -82,7 +82,7 @@ export default function OrderFormFields({
             const isPaid = form.watch("pagado");
             return (
               <FormItem>
-                <FormLabel>Estado del Envío</FormLabel>
+                <FormLabel>Estado del pedido</FormLabel>
                 <Select 
                   onValueChange={field.onChange} 
                   value={field.value}

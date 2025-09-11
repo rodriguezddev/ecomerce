@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { orderService } from "@/services/api-extensions";
+import { paymentService } from "@/services/api-extensions"; // Importar el servicio de pagos
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -141,10 +142,37 @@ export default function OrderList() {
     if (orderToDelete === null) return;
 
     try {
-      await orderService.deleteOrder(orderToDelete);
+      // Verificar si el pedido está pagado
+      const order = orders.find((o: any) => o.id === orderToDelete);
+      
+      if (order && order.pagado) {
+        toast({
+          title: "Error",
+          description: "No se puede cancelar un pedido que ya está pagado",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Actualizar el estado del pedido a "cancelado"
+      await orderService.updateOrder(orderToDelete, {
+        cancelado: true
+      });
+
+      // Si hay pagos asociados, también actualizarlos
+      if (order && order.pagos && order.pagos.length > 0) {
+        for (const pago of order.pagos) {
+          await paymentService.updatePayment(orderToDelete, {
+            nombreFormaDePago: pago.nombreFormaDePago,
+            numeroReferencia: pago.numeroReferencia
+            // Aquí podrías agregar un campo de estado cancelado si tu API lo soporta
+          });
+        }
+      }
+
       toast({
-        title: "Pedido eliminado",
-        description: "El pedido ha sido eliminado correctamente",
+        title: "Pedido cancelado",
+        description: "El pedido ha sido cancelado correctamente",
       });
       refetch();
       // Adjust current page if deleting the last item on the page
@@ -152,10 +180,10 @@ export default function OrderList() {
         setCurrentPage(currentPage - 1);
       }
     } catch (error) {
-      console.error("Error al eliminar el pedido:", error);
+      console.error("Error al cancelar el pedido:", error);
       toast({
         title: "Error",
-        description: "No se pudo eliminar el pedido",
+        description: "No se pudo cancelar el pedido",
         variant: "destructive",
       });
     } finally {
@@ -346,12 +374,13 @@ export default function OrderList() {
                                 <Edit className="h-4 w-4" />
                               </Link>
                             </Button> */}
-                            {/* <AlertDialog open={isDeleteDialogOpen && orderToDelete === order.id} onOpenChange={setIsDeleteDialogOpen}>
+                           {/* <AlertDialog open={isDeleteDialogOpen && orderToDelete === order.id} onOpenChange={setIsDeleteDialogOpen}>
                               <AlertDialogTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => confirmDelete(order.id!)}
+                                  disabled={order.pagado} // Deshabilitar si está pagado
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -362,9 +391,9 @@ export default function OrderList() {
                                     ¿Estás absolutamente seguro?
                                   </AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Esto
-                                    eliminará permanentemente el pedido de
-                                    nuestros servidores.
+                                    {order.pagado 
+                                      ? "No se puede cancelar un pedido que ya está pagado."
+                                      : "Esta acción cancelará el pedido. ¿Deseas continuar?"}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -373,8 +402,11 @@ export default function OrderList() {
                                   >
                                     Cancelar
                                   </AlertDialogCancel>
-                                  <AlertDialogAction onClick={executeDelete}>
-                                    Continuar
+                                  <AlertDialogAction 
+                                    onClick={executeDelete}
+                                    disabled={order.pagado}
+                                  >
+                                    {order.pagado ? "No disponible" : "Continuar"}
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
