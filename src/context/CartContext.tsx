@@ -10,6 +10,7 @@ export interface CartItem {
   quantity: number;
   descuento: number;
   stock: number; // ← Añadir stock al interface CartItem
+  categoriaDescuento: number;
 }
 
 interface CartContextType {
@@ -105,6 +106,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         descuento: product.descuento,
         stock: product.stock, // ← Añadir stock al item del carrito
         quantity: quantity,
+        categoriaDescuento: product.categoria?.descuento || 0
       }]);
       toast({
         title: "Agregado al carrito",
@@ -161,14 +163,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  const getCartTotal = () => {
-    return cart.reduce((total, item) => {
-      const price = item.descuento 
-        ? (item.price - (item.price * (item.descuento / 100)))
+const getCartTotal = () => {
+  return cart.reduce((total, item) => {
+    const price = item.descuento 
+      ? (item.price - (item.price * (item.descuento / 100)))
+      : item.categoriaDescuento
+        ? (item.price - (item.price * (item.categoriaDescuento / 100)))
         : item.price;
-      return total + (price * item.quantity);
-    }, 0);
-  };
+    return total + (price * item.quantity);
+  }, 0);
+};
 
   const getCartTotalSinDescuento = () => {
     return cart.reduce((total, item) => {

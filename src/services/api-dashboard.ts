@@ -561,6 +561,7 @@ export const orderService = {
       tipoDePedido?: string;
       pagado?: boolean;
       estado?: string;
+      cancelado?: boolean; 
     }
   ) => {
     try {

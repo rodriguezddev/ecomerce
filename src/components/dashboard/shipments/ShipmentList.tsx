@@ -24,10 +24,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, Eye, Trash2, Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { Edit, Eye, Trash2, Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Calendar } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { formatDate } from "@/lib/utils";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
 // Cambiar los tipos de filtro de método de pago a método de entrega
 const deliveryMethods = [
@@ -37,6 +40,15 @@ const deliveryMethods = [
   { value: "Envio nacional", label: "Envío nacional" },
 ];
 
+// Función para formatear fecha sin hora
+const formatDateWithoutTime = (date: Date): string => {
+  return date.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
+
 export default function ShipmentList() {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -45,6 +57,7 @@ export default function ShipmentList() {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [deliveryFilter, setDeliveryFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
 
   const {
     data: shipments = [],
@@ -59,11 +72,25 @@ export default function ShipmentList() {
     },
   });
 
-  // Filter shipments based on delivery method and search term
+  // Filter shipments based on delivery method, search term and date
   const filteredShipments = shipments.filter((shipment: any) => {
     // Filter by delivery method
     if (deliveryFilter !== "all" && shipment.metodoDeEntrega !== deliveryFilter) {
       return false;
+    }
+
+    // Filter by date
+    if (dateFilter && shipment.fecha) {
+      const shipmentDate = new Date(shipment.fecha);
+      const filterDate = new Date(dateFilter);
+      
+      if (
+        shipmentDate.getDate() !== filterDate.getDate() ||
+        shipmentDate.getMonth() !== filterDate.getMonth() ||
+        shipmentDate.getFullYear() !== filterDate.getFullYear()
+      ) {
+        return false;
+      }
     }
 
     // Filter by search term
@@ -128,6 +155,11 @@ export default function ShipmentList() {
     }
   };
 
+  const clearDateFilter = () => {
+    setDateFilter(undefined);
+    setCurrentPage(1);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -159,7 +191,7 @@ export default function ShipmentList() {
         </Button>
       </div>
 
-      <div className="flex justify-between items-center mb-6 gap-4">
+      <div className="flex justify-between items-center mb-6 gap-4 flex-wrap">
         <div className="relative w-64">
           <Input
             placeholder="Buscar envíos..."
@@ -170,24 +202,62 @@ export default function ShipmentList() {
             }}
           />
         </div>
-        <Select 
-          value={deliveryFilter} 
-          onValueChange={(value) => {
-            setDeliveryFilter(value);
-            setCurrentPage(1);
-          }}
-        >
-          <SelectTrigger className="w-48">
-            <SelectValue placeholder="Filtrar por método de entrega" />
-          </SelectTrigger>
-          <SelectContent>
-            {deliveryMethods.map((method) => (
-              <SelectItem key={method.value} value={method.value}>
-                {method.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        
+        <div className="flex gap-4 flex-wrap">
+          <Select 
+            value={deliveryFilter} 
+            onValueChange={(value) => {
+              setDeliveryFilter(value);
+              setCurrentPage(1);
+            }}
+          >
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Filtrar por método de entrega" />
+            </SelectTrigger>
+            <SelectContent>
+              {deliveryMethods.map((method) => (
+                <SelectItem key={method.value} value={method.value}>
+                  {method.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-48 justify-start text-left font-normal"
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                {dateFilter ? formatDateWithoutTime(dateFilter) : "Filtrar por fecha"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <CalendarComponent
+                mode="single"
+                selected={dateFilter}
+                onSelect={(date) => {
+                  setDateFilter(date);
+                  setCurrentPage(1);
+                }}
+                initialFocus
+              />
+              {dateFilter && (
+                <div className="p-3 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    onClick={clearDateFilter}
+                  >
+                    Limpiar filtro de fecha
+                  </Button>
+                </div>
+              )}
+            </PopoverContent>
+          </Popover>
+        </div>
       </div>
 
       <Card>
@@ -206,6 +276,7 @@ export default function ShipmentList() {
                   onClick={() => {
                     setDeliveryFilter("all");
                     setSearchTerm("");
+                    setDateFilter(undefined);
                   }}
                 >
                   Limpiar filtros
@@ -221,6 +292,7 @@ export default function ShipmentList() {
                     <TableHead>Empresa</TableHead>
                     <TableHead>Método de Entrega</TableHead>
                     <TableHead>Dirección</TableHead>
+                    <TableHead>Fecha</TableHead>
                     <TableHead>Pedido</TableHead>
                     <TableHead>Método de pago</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
@@ -239,6 +311,9 @@ export default function ShipmentList() {
                         </Badge>
                       </TableCell>
                       <TableCell>{shipment.direccionEmpresa}</TableCell>
+                      <TableCell>
+                        {shipment.fecha ? formatDateWithoutTime(new Date(shipment.fecha)) : 'N/A'}
+                      </TableCell>
                       <TableCell>
                         {typeof shipment.pedido === "string" ? (
                           <Badge variant="outline">#{shipment.pedido}</Badge>

@@ -13,7 +13,7 @@ import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Loader2, Trash2, Undo2 } from "lucide-react";
 import { productServiceExtensions } from "@/services/api-dashboard";
-import { productService } from "@/services/api";
+import { apiBcv, productService } from "@/services/api";
 
 // Components
 import OrderFormFields from "./OrderFormFields";
@@ -79,6 +79,29 @@ export default function OrderForm() {
       items: []
     }
   });
+
+      const [bdvPrice, setBdvPrice] = useState<number | null>(null);
+    
+          useEffect(() => {
+            apiBcv
+              .getBcvPrice()
+              .then((response) => {
+                if (response) {
+                  const bcvPrice = response.promedio;
+                  setBdvPrice(bcvPrice);
+                } else {
+                  console.error("BCV price not found in response");
+                }
+              })
+              .catch((error) => {
+                console.error("Error fetching BCV price:", error);
+                toast({
+                  title: "Error de Precio",
+                  description: "No se pudo obtener el precio del BCV. Por favor, inténtalo de nuevo más tarde.",
+                  variant: "destructive",
+                });
+              });
+          }, []);
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
@@ -300,7 +323,7 @@ export default function OrderForm() {
 
       const paymentData = {
         nombreFormaDePago: mapPaymentMethodToBackend(paymentMethod.tipo),
-        monto: total,
+        monto:paymentMethod.tipo == "PAGOMOVIL" || paymentMethod.tipo == "TRANSFERENCIA" ? (total * bdvPrice).toFixed(2) : total ,
         metodoDePagoId: paymentMethod.id,
         ...(paymentMethod.tipo.toLowerCase() !== "efectivo" && { 
           numeroReferencia: referenceNumber.trim() 

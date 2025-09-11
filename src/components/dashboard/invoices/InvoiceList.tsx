@@ -23,9 +23,24 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Edit, Eye, Trash2, Plus, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import {
+  Edit,
+  Eye,
+  Trash2,
+  Plus,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { orderService } from "@/services/api";
 
@@ -50,23 +65,23 @@ export default function InvoiceList() {
     },
   });
 
-      const {
-      data: orders = [],
-    } = useQuery({
-      queryKey: ["orders"],
-      queryFn: async () => {
-        const response = await orderService.getOrders();
-        return response || [];
-      },
-    });
+  const { data: orders = [] } = useQuery({
+    queryKey: ["orders"],
+    queryFn: async () => {
+      const response = await orderService.getOrders();
+      return response || [];
+    },
+  });
 
   // Filter invoices based on search term
-  const filteredInvoices = orders.filter((invoice: any) => 
-    invoice.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    invoice.id?.toString().includes(searchTerm) ||
-    (invoice.pedido?.id?.toString().includes(searchTerm) ||
-    (invoice.pago?.id?.toString().includes(searchTerm))
-  ));
+  const filteredInvoices = orders.filter(
+    (invoice: any) =>
+      invoice.factura ||
+      invoice.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      invoice.id?.toString().includes(searchTerm) ||
+      invoice.pedido?.id?.toString().includes(searchTerm) ||
+      invoice.pago?.id?.toString().includes(searchTerm)
+  );
 
   // Pagination logic
   const totalItems = filteredInvoices.length;
@@ -184,41 +199,46 @@ export default function InvoiceList() {
                 </TableHeader>
                 <TableBody>
                   {paginatedInvoices.map((invoice: any) => (
-                    invoice.factura && (
-                      <TableRow key={invoice.factura.id}>
+                    <TableRow key={invoice.factura?.id}>
                       <TableCell className="font-medium">
-                        #{invoice.factura.id}
+                        #{invoice.factura?.id}
                       </TableCell>
-                      <TableCell>{invoice.factura.descripcion}</TableCell>
+                      <TableCell>{invoice?.factura?.descripcion}</TableCell>
                       <TableCell>
-                        {typeof invoice.id === "string"
-                          ? `#${invoice.id}`
+                        {typeof invoice?.id === "string"
+                          ? `#${invoice?.id}`
                           : `#${invoice?.id || "N/A"}`}
                       </TableCell>
                       <TableCell>
-  {Array.isArray(invoice.pagos) 
-    ? invoice.pagos.map(pago => `#${pago.id}`).join(', ') 
-    : typeof invoice.pagos === "string" 
-      ? `#${invoice.pagos}` 
-      : `#${invoice.pagos?.id || "N/A"}`}
-</TableCell>
+                        {Array.isArray(invoice?.pagos)
+                          ? invoice?.pagos
+                              .map((pago) => `#${pago?.id}`)
+                              .join(", ")
+                          : typeof invoice?.pagos === "string"
+                          ? `#${invoice?.pagos}`
+                          : `#${invoice?.pagos?.id || "N/A"}`}
+                      </TableCell>
 
-<TableCell>{invoice.perfil.nombre} {invoice.perfil.apellido}</TableCell>
-<TableCell>
-  {new Date(invoice.fecha).toLocaleDateString('es-ES', {
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit'
-  })}
-</TableCell>
+                      <TableCell>
+                        {invoice?.perfil?.nombre} {invoice?.perfil?.apellido}
+                      </TableCell>
+                      <TableCell>
+                        {new Date(invoice?.fecha).toLocaleDateString("es-ES", {
+                          year: "numeric",
+                          month: "2-digit",
+                          day: "2-digit",
+                        })}
+                      </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">
                           <Button variant="ghost" size="icon" asChild>
-                            <Link to={`/dashboard/recibo/${invoice.factura.id}`}>
+                            <Link
+                              to={`/dashboard/recibo/${invoice?.factura?.id}`}
+                            >
                               <Eye className="h-4 w-4" />
                             </Link>
                           </Button>
-                         {/* <Button variant="ghost" size="icon" asChild>
+                          {/* <Button variant="ghost" size="icon" asChild>
                             <Link
                               to={`/dashboard/recibo/editar/${invoice.id}`}
                             >
@@ -261,8 +281,6 @@ export default function InvoiceList() {
                         </div>
                       </TableCell>
                     </TableRow>
-                    )
-                    
                   ))}
                 </TableBody>
               </Table>
@@ -272,9 +290,13 @@ export default function InvoiceList() {
                 <div className="flex items-center justify-between px-4 py-2 border-t">
                   <div className="flex items-center space-x-2">
                     <p className="text-sm text-muted-foreground">
-                      Mostrando {startIndex + 1}-{Math.min(endIndex, totalItems)} de {totalItems} recibos
+                      Mostrando {startIndex + 1}-
+                      {Math.min(endIndex, totalItems)} de {totalItems} recibos
                     </p>
-                    <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                    <Select
+                      value={itemsPerPage.toString()}
+                      onValueChange={handleItemsPerPageChange}
+                    >
                       <SelectTrigger className="h-8 w-[70px]">
                         <SelectValue placeholder={itemsPerPage} />
                       </SelectTrigger>

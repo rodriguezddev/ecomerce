@@ -345,7 +345,7 @@ const Checkout = () => {
     try {
       // Calculate order total
       const subtotal = getCartTotalSinDescuento();
-      const orderTotal = subtotal;
+      const orderTotal = selectedPaymentMethod.tipo === "TRANSFER" ||  selectedPaymentMethod.tipo  === "PAGOMOVIL" ? subtotal * bdvPrice : subtotal;
 
       // Create order
       const orderItems = cart.map(item => ({
@@ -379,7 +379,7 @@ const Checkout = () => {
       
       // Agregar campos básicos
       paymentFormData.append("nombreFormaDePago", mapPaymentMethodToBackend(selectedPaymentMethod.tipo));
-      paymentFormData.append("monto", orderTotal.toString());
+      paymentFormData.append("monto", orderTotal.toFixed(2).toString());
       paymentFormData.append("metodoDePagoId", selectedPaymentMethod.id.toString());
       
       // Agregar número de referencia si no es efectivo
@@ -476,6 +476,8 @@ const Checkout = () => {
       [field]: value
     }));
   };
+
+  console.log(cart)
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -808,10 +810,14 @@ const Checkout = () => {
                         </span>
                         <span>{item.name}</span>
                       </div>
-                      <span className="font-medium">{item.descuento 
+                      <span className="font-medium">
+  {item.descuento > 0
     ? `$${(item.price - (item.price * (item.descuento / 100))).toFixed(2)}`
-    : `$${item.price.toFixed(2)}`
-  }</span>
+    : item.categoriaDescuento > 0
+      ? `$${(item.price - (item.price * (item.categoriaDescuento / 100))).toFixed(2)}`
+      : `$${item.price.toFixed(2)}`
+  }
+</span>
                     </div>
                   ))}
                 </div>

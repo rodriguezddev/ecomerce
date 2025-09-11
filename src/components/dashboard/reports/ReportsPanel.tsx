@@ -45,7 +45,7 @@ export default function ReportsPanel() {
         fromDay: startDate?.getDate() || new Date().getDate(),
         fromMonth: startDate ? startDate.getMonth() : new Date().getMonth(),
         fromYear: startDate?.getFullYear() || new Date().getFullYear(),
-        untilDay: endDate?.getDate() || new Date().getDate(),
+        untilDay: endDate?.getDate() == new Date().getDate() ? endDate?.getDate() + 1 : endDate?.getDate() || new Date().getDate(),
         untilMonth: endDate ? endDate.getMonth() : new Date().getMonth(),
         untilYear: endDate?.getFullYear() || new Date().getFullYear()
       };
@@ -149,7 +149,7 @@ export default function ReportsPanel() {
                   className="border rounded-md p-2 w-full"
                   dateFormat="dd/MM/yyyy"
                   locale="es"
-                  maxDate={new Date()}
+                  //maxDate={new Date()}
                 />
                 </div>  
                 

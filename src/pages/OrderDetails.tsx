@@ -433,9 +433,15 @@ const OrderDetails = () => {
                   )}
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between border-t pt-4">
-                <span className="font-bold">Total</span>
-                <span className="text-xl font-bold">${order.precioTotal.toFixed(2)}</span>
+              <CardFooter className="flex flex-col border-t pt-4 w-full">
+                <div className="mb-2 flex justify-between w-full">
+                  <span className="font-bold">Total</span>
+                  <span className="text-xl font-bold">${order.precioTotal.toFixed(2)}</span>
+                </div>
+               <div className="mb-2 flex justify-between w-full text-gray-600">
+                  <span className="font-bold">Total Bs</span>
+                  <span className="text-xl font-bold ">${order.precioTotal.toFixed(2) * order.pagos[0].tasaBsDelDia.toFixed(2)}</span>
+                </div>
               </CardFooter>
             </Card>
 
