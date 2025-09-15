@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { orderService } from "@/services/api-extensions";
 import { paymentService } from "@/services/api-extensions"; // Importar el servicio de pagos
+import { productServiceExtensions } from "@/services/api-dashboard";
+import { productService } from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -54,6 +56,7 @@ import {
 } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
+import { products } from '../../../data/products';
 
 const OrderStatusBadge = ({ status }: { status: string }) => {
   let color = "";
@@ -83,10 +86,30 @@ const OrderStatusBadge = ({ status }: { status: string }) => {
   );
 };
 
+// Función para restaurar el stock de productos
+const restoreProductStock = async (items: any[]) => {
+  try {
+    for (const item of items) {
+      const product = await productService.getProductById(item.productoId);
+      const newStock = product.stock + item.cantidad;
+      
+      // Usar FormData para la actualización
+      const formData = new FormData();
+      formData.append("stock", newStock.toString());
+      
+      await productServiceExtensions.updateProduct(item.productoId, formData);
+    }
+    return true;
+  } catch (error) {
+    console.error("Error al restaurar stock:", error);
+    return false;
+  }
+};
+
 export default function OrderList() {
   const { toast } = useToast();
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [orderToDelete, setOrderToDelete] = useState<number | null>(null);
+  const [orderToDelete, setOrderToDelete] = useState<any>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
@@ -103,6 +126,14 @@ export default function OrderList() {
       const response = await orderService.getOrders();
       return response || [];
     },
+  });
+
+  const { data: products } = useQuery({
+    queryKey: ["products"],
+    queryFn: productService.getProducts,
+    meta: {
+      onError: (error: Error) => console.error("Error fetching products:", error),
+    }
   });
 
   // Filter orders based on search term and date
@@ -133,8 +164,8 @@ export default function OrderList() {
   const endIndex = startIndex + itemsPerPage;
   const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
 
-  const confirmDelete = (id: number) => {
-    setOrderToDelete(id);
+  const confirmDelete = (order: any) => {
+    setOrderToDelete(order);
     setIsDeleteDialogOpen(true);
   };
 
@@ -143,9 +174,7 @@ export default function OrderList() {
 
     try {
       // Verificar si el pedido está pagado
-      const order = orders.find((o: any) => o.id === orderToDelete);
-      
-      if (order && order.pagado) {
+      if (orderToDelete.pagado) {
         toast({
           title: "Error",
           description: "No se puede cancelar un pedido que ya está pagado",
@@ -154,27 +183,47 @@ export default function OrderList() {
         return;
       }
 
-      // Actualizar el estado del pedido a "cancelado"
-      await orderService.updateOrder(orderToDelete, {
-        cancelado: true
+      // 1. Primero devolver el stock de los productos
+      if (orderToDelete.items && orderToDelete.items.length > 0) {
+        // Transformar la estructura de items para la función restoreProductStock
+        const itemsForStockRestoration = orderToDelete.items.map((item: any) => ({
+          productoId: item.producto.id,
+          cantidad: item.cantidad
+        }));
+        
+        const stockRestored = await restoreProductStock(itemsForStockRestoration);
+        
+        if (!stockRestored) {
+          toast({
+            title: "Advertencia",
+            description: "El pedido se canceló pero hubo un error al devolver el stock de los productos",
+            variant: "default",
+          });
+        }
+      }
+
+      // 2. Actualizar el estado del pedido a "cancelado"
+      await orderService.updateOrder(orderToDelete.id, {
+        estado: "Cancelado"
       });
 
-      // Si hay pagos asociados, también actualizarlos
-      if (order && order.pagos && order.pagos.length > 0) {
-        for (const pago of order.pagos) {
-          await paymentService.updatePayment(orderToDelete, {
+      // 3. Si hay pagos asociados, también actualizarlos
+      if (orderToDelete.pagos && orderToDelete.pagos.length > 0) {
+        for (const pago of orderToDelete.pagos) {
+          await paymentService.updatePayment(pago.id, {
             nombreFormaDePago: pago.nombreFormaDePago,
-            numeroReferencia: pago.numeroReferencia
-            // Aquí podrías agregar un campo de estado cancelado si tu API lo soporta
+            numeroReferencia: pago.numeroReferencia,
+            cancelado: true
           });
         }
       }
 
       toast({
         title: "Pedido cancelado",
-        description: "El pedido ha sido cancelado correctamente",
+        description: "El pedido ha sido cancelado correctamente y el stock fue devuelto",
       });
       refetch();
+      
       // Adjust current page if deleting the last item on the page
       if (paginatedOrders.length === 1 && currentPage > 1) {
         setCurrentPage(currentPage - 1);
@@ -206,7 +255,7 @@ export default function OrderList() {
     setCurrentPage(1);
   };
 
-  if (isLoading) {
+  if (isLoading || !products) {
     return (
       <div className="flex items-center justify-center h-64">
         <p>Cargando pedidos...</p>
@@ -333,12 +382,21 @@ export default function OrderList() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {paginatedOrders.map((order: any) => {
-                    // Calculate total
-                    const total =
-                      order.items?.reduce((sum: number, item: any) => {
-                        return sum + item.cantidad * (item.producto.precio - (item.producto.precio * (item.producto.descuento / 100)));
-                      }, 0) || 0;
+                 {paginatedOrders.map((order: any) => {
+    // Esperar a que products se cargue y sea un array
+    if (!products || !Array.isArray(products)) return null;
+    
+    const productsArray = products;
+    const total = order.items?.reduce((sum: number, item: any) => {
+      const product = productsArray.find((p: any) => p.id === item.producto.id);
+      if (product && product.precioConDescuento) {
+        return sum + (item.cantidad * product.precioConDescuento);
+      }
+      // Si no encuentra el producto o no tiene precioConDescuento, usar el precio original
+      return sum + (item.cantidad * item.producto.precioConDescuento);
+    }, 0) || 0;
+
+                      
 
                     return (
                       <TableRow key={order.id}>
@@ -367,20 +425,13 @@ export default function OrderList() {
                                 <Eye className="h-4 w-4" />
                               </Link>
                             </Button>
-                            {/* <Button variant="ghost" size="icon" asChild>
-                              <Link
-                                to={`/dashboard/pedidos/editar/${order.id}`}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Link>
-                            </Button> */}
-                           {/* <AlertDialog open={isDeleteDialogOpen && orderToDelete === order.id} onOpenChange={setIsDeleteDialogOpen}>
+                            <AlertDialog open={isDeleteDialogOpen && orderToDelete?.id === order.id} onOpenChange={setIsDeleteDialogOpen}>
                               <AlertDialogTrigger asChild>
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => confirmDelete(order.id!)}
-                                  disabled={order.pagado} // Deshabilitar si está pagado
+                                  onClick={() => confirmDelete(order)}
+                                  disabled={order.pagado || order.estado === "Cancelado"} // Deshabilitar si está pagado o ya cancelado
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -393,7 +444,7 @@ export default function OrderList() {
                                   <AlertDialogDescription>
                                     {order.pagado 
                                       ? "No se puede cancelar un pedido que ya está pagado."
-                                      : "Esta acción cancelará el pedido. ¿Deseas continuar?"}
+                                      : `Esta acción cancelará el pedido #${order.id} y devolverá el stock de ${order.items?.length || 0} productos al inventario. ¿Deseas continuar?`}
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
@@ -410,7 +461,7 @@ export default function OrderList() {
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
                               </AlertDialogContent>
-                            </AlertDialog> */}
+                            </AlertDialog>
                           </div>
                         </TableCell>
                       </TableRow>

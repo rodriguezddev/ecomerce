@@ -35,6 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Input } from "@/components/ui/input";
 import { formatDate } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { orderService } from '../../../services/api-dashboard';
 
 // Mapeo de tipos de pago para mostrar nombres más amigables
 const paymentTypes = [
@@ -72,7 +73,17 @@ export default function PaymentList() {
       const response = await paymentService.getPayments();
       return response || [];
     },
-  });
+  }); 
+
+  const {
+    data: orders = [],
+  } = useQuery({
+    queryKey: ["orders"],
+    queryFn: async () => {
+      const response = await orderService.getOrders();
+      return response || [];
+    },
+  }); 
 
   const confirmDelete = (pedidoId: number, id: number) => {
     setPaymentToDelete({ pedidoId, id });
@@ -124,24 +135,37 @@ const handleViewImage = (pagos: any[] | null) => {
   }
 };
 
-  const filteredPayments = payments?.filter((payment: any) => {
-    // Filtro por tipo de pago
-    if (paymentFilter !== "all" && payment.nombreFormaDePago !== paymentFilter) {
-      return false;
-    }
-    
-    // Filtro por término de búsqueda
-    if (!searchTerm) return true;
-    
-    const lowerSearchTerm = searchTerm.toLowerCase();
-    const refMatch = payment.numeroReferencia
-      ?.toLowerCase()
-      .includes(lowerSearchTerm);
-    const dateMatch =
-      payment.fecha &&
-      formatDate(new Date(payment.fecha)).toLowerCase().includes(lowerSearchTerm);
-    return refMatch || dateMatch;
-  });
+const filteredPayments = payments?.filter((payment: any) => {
+  // Buscar el pedido asociado a este pago en el array de órdenes
+  const orderAssociated = orders.find(order => order.id === payment.pedido?.id);
+  
+  // Excluir pagos cuyo pedido fue cancelado
+  if (orderAssociated && orderAssociated.estado === "Cancelado" || orderAssociated && orderAssociated.pagado !== true) {
+    return false;
+  }
+  
+  // También excluir pagos que estén marcados como cancelados directamente
+  if (payment.cancelado) {
+    return false;
+  }
+  
+  // Filtro por tipo de pago
+  if (paymentFilter !== "all" && payment.nombreFormaDePago !== paymentFilter) {
+    return false;
+  }
+  
+  // Filtro por término de búsqueda
+  if (!searchTerm) return true;
+  
+  const lowerSearchTerm = searchTerm.toLowerCase();
+  const refMatch = payment.numeroReferencia
+    ?.toLowerCase()
+    .includes(lowerSearchTerm);
+  const dateMatch =
+    payment.fecha &&
+    formatDate(new Date(payment.fecha)).toLowerCase().includes(lowerSearchTerm);
+  return refMatch || dateMatch;
+});
 
   // Pagination logic
   const totalItems = filteredPayments?.length || 0;

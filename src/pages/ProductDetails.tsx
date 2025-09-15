@@ -172,17 +172,24 @@ const ProductDetails = () => {
             {/* Product price */}
             <div className="mb-6">
               <div>
-                <span className="text-3xl font-bold text-primary">${product.descuento ? (
-                            product.precio - (product.precio *
-                            (product.descuento / 100))
-                          ).toFixed(2) : product.precio.toFixed(2)}</span>
+                <span className="text-3xl font-bold text-primary"> ${product.descuento 
+  ? (product.precio - (product.precio * (product.descuento / 100))).toFixed(2)
+  : product.categoria?.descuento 
+    ? (product.precio - (product.precio * (product.categoria.descuento / 100))).toFixed(2)
+    : product.precio.toFixed(2)}</span>
                 <div>
                   {bdvPrice !== null && (
-                    <span className="text-sm text-gray-500">
-                            {((product.precio - (product.precio *
-                            (product.descuento / 100))) * bdvPrice).toFixed(2)} BS
-                          </span>
-                  )}
+  <span className="text-sm text-gray-500">
+    {(
+      (product.descuento 
+        ? product.precio - (product.precio * (product.descuento / 100))
+        : product.categoria?.descuento 
+          ? product.precio - (product.precio * (product.categoria.descuento / 100))
+          : product.precio
+      ) * bdvPrice
+    ).toFixed(2)} BS
+  </span>
+)}
                 </div>
                 
               </div>
@@ -190,6 +197,20 @@ const ProductDetails = () => {
               {product.descuento > 0 && (
                 <div>
                   {product.descuento > 0 && (
+                      <span className="text-gray-500 text-sm line-through ml-2">
+                          $
+                          {product.precio.toFixed(2)}
+                        </span>
+                    )}
+
+                  
+                </div>
+                
+              )}
+
+               {product.categoria.descuento > 0 && (
+                <div>
+                  {product.categoria.descuento > 0 && (
                       <span className="text-gray-500 text-sm line-through ml-2">
                           $
                           {product.precio.toFixed(2)}

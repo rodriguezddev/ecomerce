@@ -1866,7 +1866,6 @@ export const paymentService = {
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(data),
@@ -2014,11 +2013,10 @@ export const paymentService = {
       const response = await fetch(
         `${
           import.meta.env.VITE_API_URL || "http://localhost:3000"
-        }pagos/pedido/${pedidoId}`,
+        }pagos/${pedidoId}`,
         {
           method: "PATCH",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
           body: JSON.stringify(data),

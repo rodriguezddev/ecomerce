@@ -278,6 +278,12 @@ const AllProducts = () => {
                         {`-${product.descuento}%`}
                       </Badge>
                     )}
+
+                     {product.categoria.descuento > 0 && (
+                      <Badge className="absolute top-3 left-3 bg-primary">
+                        {`-${product.categoria.descuento}%`}
+                      </Badge>
+                    )}
                   </div>
                   <CardContent className="p-4">
                     <Link
@@ -288,15 +294,22 @@ const AllProducts = () => {
                     </Link>
                     
                     <div className="product-card__price mt-2 font-bold">
-                      ${product.descuento ? (
-                            product.precio - (product.precio *
-                            (product.descuento / 100))
-                          ).toFixed(2) : product.precio.toFixed(2)}
+                     ${product.descuento 
+  ? (product.precio - (product.precio * (product.descuento / 100))).toFixed(2)
+  : product.categoria?.descuento 
+    ? (product.precio - (product.precio * (product.categoria.descuento / 100))).toFixed(2)
+    : product.precio.toFixed(2)}
                       {bdvPrice !== null && (
                         <div>
                           <span className="text-sm text-gray-500">
-                            {((product.precio - (product.precio *
-                            (product.descuento / 100))) * bdvPrice).toFixed(2)} BS
+                             {(
+      (product.descuento 
+        ? product.precio - (product.precio * (product.descuento / 100))
+        : product.categoria?.descuento 
+          ? product.precio - (product.precio * (product.categoria.descuento / 100))
+          : product.precio
+      ) * bdvPrice
+    ).toFixed(2)} BS
                           </span>
                         </div>
                       )}

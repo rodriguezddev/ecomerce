@@ -51,6 +51,7 @@ import PaymentMethodCreate from "./components/dashboard/paymentMethods/PaymentMe
 import PaymentMethodDetail from "./components/dashboard/paymentMethods/PaymentMethodDetail";
 import CategoryDetail from "./components/dashboard/categories/CategoryDetail";
 import ProductCreate from "./components/dashboard/products/ProductCreate";
+import ReporteVentasDiarias from "./components/dashboard/reports/ReporteVentasDiarias";
 
 // Create a client
 const queryClient = new QueryClient();
@@ -118,7 +119,8 @@ function App() {
                   <Route path="metodos-pago/:id" element={<PaymentMethodDetail />} />
                   <Route path="metodos-pago/editar/:id" element={<PaymentMethodDetail />} />
                   <Route path="pagos" element={<PaymentList />} />
-                  <Route path="pagos/nuevo" element={<PaymentForm />} />
+                  <Route path="pagos/nuevo" element={<PaymentForm />} /> 
+                  <Route path="pagos/nuevo/:orderId" element={<PaymentForm />} />
                   <Route path="pagos/editar/:id" element={<PaymentForm />} />
                   <Route path="pedidos" element={<OrderList />} />
                   <Route path="pedidos/nuevo" element={<OrderForm />} />
@@ -132,6 +134,7 @@ function App() {
                   <Route path="recibo/nueva" element={<InvoiceForm />} />
                   <Route path="recibo/:id" element={<InvoiceDetailsDashboard />} />
                   <Route path="recibo/editar/:id" element={<InvoiceForm />} />
+                  <Route path="reporte-ventas" element={<ReporteVentasDiarias />} />
                 </Route>
                 
                 <Route path="*" element={<NotFound />} />

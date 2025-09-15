@@ -37,9 +37,18 @@ export const getChangedFields = (currentValues: OrderFormValues, initialValues: 
   return changes;
 };
 
+export const calculateProductPrice = (product: any) => {
+  if (!product || !product.precio) return 0;
+  
+  const descuento = product.descuento || product.categoria?.descuento || 0;
+  return product.precio - (product.precio * (descuento / 100));
+};
+
 export const calculateTotal = (selectedProducts: any[]) => {
   return selectedProducts.reduce((total, product) => {
-    const precioConDescuento = product.precio - (product.precio * (product.descuento / 100));
+    if (!product || !product.cantidad) return total;
+    
+    const precioConDescuento = calculateProductPrice(product);
     return total + (precioConDescuento * product.cantidad);
   }, 0);
 };

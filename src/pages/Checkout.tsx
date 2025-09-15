@@ -344,7 +344,7 @@ const Checkout = () => {
 
     try {
       // Calculate order total
-      const subtotal = getCartTotalSinDescuento();
+      const subtotal = getCartTotal();
       const orderTotal = selectedPaymentMethod.tipo === "TRANSFER" ||  selectedPaymentMethod.tipo  === "PAGOMOVIL" ? subtotal * bdvPrice : subtotal;
 
       // Create order

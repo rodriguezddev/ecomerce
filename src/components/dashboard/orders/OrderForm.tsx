@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { orderService, invoiceService, paymentService } from "@/services/api-extensions";
-import { userService } from "@/services/api-extensions";
+import { paymentService as paymentServiceCreate } from "@/services/api";
+import { userService } from "@/services/api";
 import { paymentMethodService } from "@/services/paymentMethodService";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,6 +69,8 @@ export default function OrderForm() {
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [createdOrderData, setCreatedOrderData] = useState<Pedido | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [previousEstado, setPreviousEstado] = useState<string>("");
+  const [voucherError, setVoucherError] = useState<string>(""); // Estado para error del voucher
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
@@ -80,31 +83,54 @@ export default function OrderForm() {
     }
   });
 
-      const [bdvPrice, setBdvPrice] = useState<number | null>(null);
+  const [bdvPrice, setBdvPrice] = useState<number | null>(null);
+
+  useEffect(() => {
+    apiBcv
+      .getBcvPrice()
+      .then((response) => {
+        if (response) {
+          const bcvPrice = response.promedio;
+          setBdvPrice(bcvPrice);
+        } else {
+          console.error("BCV price not found in response");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching BCV price:", error);
+        toast({
+          title: "Error de Precio",
+          description: "No se pudo obtener el precio del BCV. Por favor, inténtalo de nuevo más tarde.",
+          variant: "destructive",
+        });
+      });
+  }, []);
+
+  // Guardar el estado anterior cuando cambia
+  useEffect(() => {
     
-          useEffect(() => {
-            apiBcv
-              .getBcvPrice()
-              .then((response) => {
-                if (response) {
-                  const bcvPrice = response.promedio;
-                  setBdvPrice(bcvPrice);
-                } else {
-                  console.error("BCV price not found in response");
-                }
-              })
-              .catch((error) => {
-                console.error("Error fetching BCV price:", error);
-                toast({
-                  title: "Error de Precio",
-                  description: "No se pudo obtener el precio del BCV. Por favor, inténtalo de nuevo más tarde.",
-                  variant: "destructive",
-                });
-              });
-          }, []);
+    const currentEstado = form.getValues("estado");
+    console.log('dsds', currentEstado)
+    if (currentEstado && !previousEstado) {
+      setPreviousEstado(currentEstado);
+    }
+  }, [form.watch("estado")]);
+
+  // Efecto para detectar cuando el estado cambia a "Cancelado"
+  useEffect(() => {
+    const currentEstado = form.getValues("estado");
+    
+    if (isEditing && currentEstado === "Cancelado" && previousEstado == "Cancelado") {
+      // Mostrar el diálogo de cancelación cuando el estado cambia a "Cancelado"
+      setShowCancelDialog(true);
+    }
+  }, [form.watch("estado"), isEditing, previousEstado]);
 
   useEffect(() => {
     const subscription = form.watch((value, { name }) => {
+      if (name === "estado") {
+        setPreviousEstado(form.getValues("estado"));
+      }
       if (name === "pagado" && value.pagado) {
         form.setValue("estado", "Pedido en proceso de empaquetado");
       }
@@ -118,14 +144,7 @@ export default function OrderForm() {
     queryFn: async () => {
       if (id) {
         const orderData = await orderService.getOrderById(Number(id));
-        if (!orderData.factura) {
-          try {
-            const invoice = await invoiceService.getInvoiceByOrderId(Number(id));
-            return { ...orderData, factura: invoice };
-          } catch (error) {
-            return orderData;
-          }
-        }
+        
         return orderData;
       }
       return null;
@@ -168,7 +187,8 @@ export default function OrderForm() {
         nombre: item.producto.nombre,
         precio: item.producto.precio,
         cantidad: item.cantidad,
-        descuento: item.producto.descuento || 0
+        descuento: item.producto.descuento || 0,
+        categoria: item.producto.categoria || null
       }));
 
       const initialData = {
@@ -177,11 +197,13 @@ export default function OrderForm() {
         estado: order.estado,
         perfilId: order.perfil?.id ?? null,
         items: formattedItems
+         
       };
 
       form.reset(initialData);
       setInitialValues(initialData);
       setSelectedProducts(selectedProductsData || []);
+      setPreviousEstado(order.estado);
 
       if (order.pago) {
         setSelectedPaymentMethod({
@@ -202,6 +224,7 @@ export default function OrderForm() {
       nombre: products[0]?.nombre || "",
       precio: products[0]?.precio || 0,
       descuento: products[0]?.descuento || 0,
+      categoria: products[0].categoria || null,
       cantidad: 1
     }]);
   };
@@ -249,6 +272,7 @@ export default function OrderForm() {
         nombre: product.nombre,
         precio: product.precio,
         descuento: product?.descuento || 0,
+        categoria: product.categoria || null,
       };
       setSelectedProducts(newSelectedProducts);
     }
@@ -297,19 +321,18 @@ export default function OrderForm() {
 
   const createInvoice = async (orderId: number) => {
     try {
-      try {
-        const existingInvoice = await invoiceService.getInvoiceByOrderId(orderId);
-        if (existingInvoice) {
-          return existingInvoice;
-        }
-      } catch (error) {}
-
-      const invoiceData = {
-        pedidoId: orderId,
-        descripcion: `Recibo para pedido #${orderId}`,
-      };
+      console.log(order)
+      if (order?.factura && order?.factura !== null && order?.factura?.length > 0) {
+        console.log(order.factura, "existe")
+        return order.factura;
+      }
       
-      const invoice = await invoiceService.createInvoice(invoiceData);
+      const invoice = await invoiceService.createInvoice(
+        {
+          descripcion: "Recibo de Pedido #" + orderId,
+          pedidoId: parseInt(orderId.toString(), 10)
+        }
+      )
       return invoice;
     } catch (error) {
       console.error("Error al crear recibo:", error);
@@ -317,20 +340,57 @@ export default function OrderForm() {
     }
   };
 
+  const validateVoucher = () => {
+    // Validar que el voucher sea requerido para métodos de pago que no sean efectivo
+    if (selectedPaymentMethod && selectedPaymentMethod.tipo.toLowerCase() !== "efectivo") {
+      if (!voucher && !voucherPreview) {
+        setVoucherError("El comprobante de pago es requerido");
+        return false;
+      }
+    }
+    setVoucherError("");
+    return true;
+  };
+
   const processPayment = async (orderId: number, orderValues: OrderFormValues, paymentMethod: PaymentMethod) => {
     try {
+      // Validar voucher antes de procesar el pago
+      if (!validateVoucher()) {
+        throw new Error("Comprobante de pago requerido");
+      }
+
       const total = calculateTotal(selectedProducts);
+      const monto = paymentMethod.tipo == "PAGOMOVIL" || paymentMethod.tipo == "TRANSFERENCIA" ? (total * bdvPrice).toFixed(2) : total;
 
-      const paymentData = {
-        nombreFormaDePago: mapPaymentMethodToBackend(paymentMethod.tipo),
-        monto:paymentMethod.tipo == "PAGOMOVIL" || paymentMethod.tipo == "TRANSFERENCIA" ? (total * bdvPrice).toFixed(2) : total ,
-        metodoDePagoId: paymentMethod.id,
-        ...(paymentMethod.tipo.toLowerCase() !== "efectivo" && { 
-          numeroReferencia: referenceNumber.trim() 
-        })
-      };
+      // Crear FormData en lugar de objeto JSON
+      const paymentFormData = new FormData();
+      
+      // Agregar campos básicos
+      paymentFormData.append("nombreFormaDePago", mapPaymentMethodToBackend(paymentMethod.tipo));
+      paymentFormData.append("monto", monto.toString() );
+      paymentFormData.append("metodoDePagoId", paymentMethod.id.toString());
+      
+      // Agregar número de referencia si no es efectivo
+      if (paymentMethod.tipo.toLowerCase() !== "efectivo") {
+        paymentFormData.append("numeroReferencia", referenceNumber.trim());
+      }
+      
+      // Agregar imagen del comprobante si existe
+      if (voucher) {
+        paymentFormData.append("image", voucher);
+      } else if (voucherPreview) {
+        // Si tenemos voucherPreview (base64) pero no el archivo, convertirlo
+        try {
+          const response = await fetch(voucherPreview);
+          const blob = await response.blob();
+          const file = new File([blob], "comprobante.png", { type: blob.type });
+          paymentFormData.append("image", file);
+        } catch (error) {
+          console.error("Error al convertir voucherPreview a archivo:", error);
+        }
+      }
 
-      const payment = await paymentService.createPayment(orderId, paymentData);
+      const payment = await paymentServiceCreate.createPayment(orderId, paymentFormData);
 
       toast({
         title: "Pago registrado",
@@ -358,6 +418,23 @@ export default function OrderForm() {
         variant: "destructive",
       });
       return;
+    }
+
+    // Si el estado es "Cancelado", no proceder con el envío normal
+    if (values.estado === "Cancelado") {
+      return;
+    }
+
+    // Validar voucher para nuevos pedidos
+    if (!isEditing && selectedPaymentMethod && selectedPaymentMethod.tipo.toLowerCase() !== "efectivo") {
+      if (!validateVoucher()) {
+        toast({
+          title: "Error",
+          description: "El comprobante de pago es requerido",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     // Validar stock antes de crear o editar el pedido
@@ -407,12 +484,27 @@ export default function OrderForm() {
         }
 
         const updatedOrder = await orderService.updateOrder(Number(id), changes);
+
+        console.log(id, "factura")
+         let invoice = null;
+        if (values.pagado) {
+          console.log('pagado')
+          invoice = await createInvoice(id);
+        }
+
+        const completeOrderData = await orderService.getOrderById(id);
+
+        setCreatedOrderData({
+          ...completeOrderData,
+          factura: invoice || undefined
+        });
+        setShowSuccessModal(true);
         
         if (selectedPaymentMethod) {
           await processPayment(Number(id), values, selectedPaymentMethod);
         }
         
-        if (!order?.factura && values.pagado) {
+        if (order?.factura == null && values.pagado) {
           try {
             await createInvoice(updatedOrder.id);
             toast({
@@ -554,7 +646,7 @@ export default function OrderForm() {
 
   const isOrderCreated = isEditing && order;
   const handleredirect = () => { navigate("/dashboard/pedidos"); setShowSuccessModal(false)}
-
+console.log(showCancelDialog, previousEstado)
   return (
     <>
       <OrderSuccessModal 
@@ -565,7 +657,13 @@ export default function OrderForm() {
       
       <CancelOrderDialog
         show={showCancelDialog}
-        onClose={() => setShowCancelDialog(false)}
+        onClose={() => {
+          setShowCancelDialog(false);
+          // Revertir el estado si el usuario cancela la cancelación
+          if (previousEstado && previousEstado !== "Cancelado") {
+            form.setValue("estado", previousEstado);
+          }
+        }}
         onConfirm={handleCancelOrder}
         isSubmitting={isSubmitting}
       />
@@ -573,12 +671,12 @@ export default function OrderForm() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <div className="flex flex-row items-center ">
-<Button className="mr-2" variant="outline" size="icon" onClick={() => navigate(-1)}>
-                      <ArrowLeft className="h-4 w-4" />
-                    </Button>
-          <CardTitle>
-            {isEditing ? `Actualizar estatus del pedido #${id}` : "Nuevo Pedido"}
-          </CardTitle>
+            <Button className="mr-2" variant="outline" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <CardTitle>
+              {isEditing ? `Actualizar estatus del pedido #${id}` : "Nuevo Pedido"}
+            </CardTitle>
           </div>
           
           {isEditing && order && order.estado === "Cancelado" && (
@@ -647,6 +745,7 @@ export default function OrderForm() {
                   voucherPreview={voucherPreview}
                   setVoucherPreview={setVoucherPreview}
                   isOrderCreated={isOrderCreated}
+                  voucherError={voucherError}
                 />
               )}
 
@@ -663,7 +762,7 @@ export default function OrderForm() {
               <Button variant="cancel" type="button" onClick={() => navigate("/dashboard/pedidos")}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="submit" disabled={isSubmitting || form.getValues("estado") === "Cancelado"}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

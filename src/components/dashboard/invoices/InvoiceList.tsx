@@ -74,14 +74,22 @@ export default function InvoiceList() {
   });
 
   // Filter invoices based on search term
-  const filteredInvoices = orders.filter(
-    (invoice: any) =>
-      invoice.factura ||
-      invoice.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      invoice.id?.toString().includes(searchTerm) ||
-      invoice.pedido?.id?.toString().includes(searchTerm) ||
-      invoice.pago?.id?.toString().includes(searchTerm)
-  );
+const filteredInvoices = orders.filter((invoice: any) => {
+  // Buscar el pedido asociado (asumiendo que 'orders' es el array de pedidos)
+  const orderAssociated = orders.find(order => order?.factura?.id === invoice?.id);
+  
+  // Excluir facturas de pedidos cancelados
+  if (orderAssociated && orderAssociated.estado === "Cancelado") {
+    return false;
+  }
+  
+  // Aplicar filtro de búsqueda
+  return invoice.factura &&
+    (invoice.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     invoice.id?.toString().includes(searchTerm) ||
+     invoice.pedido?.id?.toString().includes(searchTerm) ||
+     invoice.pago?.id?.toString().includes(searchTerm));
+});
 
   // Pagination logic
   const totalItems = filteredInvoices.length;

@@ -47,15 +47,7 @@ export default function CancelOrderDialog({
         </DialogHeader>
         
         <div className="space-y-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="motivo">Motivo de cancelación (opcional)</Label>
-            <Input
-              id="motivo"
-              placeholder="Ingrese el motivo de la cancelación"
-              value={motivoCancelacion}
-              onChange={(e) => setMotivoCancelacion(e.target.value)}
-            />
-          </div>
+
           
           <div className="flex items-center space-x-2">
             <Checkbox

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { reportService } from "@/services/api-extensions";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,8 @@ import {
   Tag
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useReactToPrint } from "react-to-print";
+import ReporteVentasDiarias from "./ReporteVentasDiarias";
 
 export default function ReportsPanel() {
   const { toast } = useToast();
@@ -45,7 +47,8 @@ export default function ReportsPanel() {
         fromDay: startDate?.getDate() || new Date().getDate(),
         fromMonth: startDate ? startDate.getMonth() : new Date().getMonth(),
         fromYear: startDate?.getFullYear() || new Date().getFullYear(),
-        untilDay: endDate?.getDate() == new Date().getDate() ? endDate?.getDate() + 1 : endDate?.getDate() || new Date().getDate(),
+        
+        untilDay: endDate?.getDate()  || new Date().getDate(),
         untilMonth: endDate ? endDate.getMonth() : new Date().getMonth(),
         untilYear: endDate?.getFullYear() || new Date().getFullYear()
       };
@@ -106,6 +109,24 @@ export default function ReportsPanel() {
     }
   };
 
+
+  // Añade esta función para manejar la impresión
+  const pdfRef = useRef<HTMLDivElement>(null);
+  
+  const handlePrint = useReactToPrint({
+    contentRef: pdfRef,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 10mm;
+      }
+      body {
+        font-family: Arial, sans-serif;
+      }
+    `
+  });
+
+
   return (
     <div className="space-y-6">
       <div>
@@ -129,6 +150,7 @@ export default function ReportsPanel() {
         
         <TabsContent value="sales" className="space-y-4">
           <Card>
+           
             <CardHeader>
               <CardTitle>Filtro de Fechas</CardTitle>
               <CardDescription>Selecciona el rango de fechas para los reportes</CardDescription>
@@ -159,6 +181,12 @@ export default function ReportsPanel() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card style={{ minHeight: '13rem' }} className="display flex flex-col justify-between">
+               <div ref={pdfRef} className="hidden print:block">
+                      <ReporteVentasDiarias  
+                          periodoInicial={startDate}
+                          periodoFinal={endDate}
+                      />
+                    </div>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <ShoppingBag className="mr-2 h-5 w-5" />
@@ -171,7 +199,7 @@ export default function ReportsPanel() {
               <CardContent>
                 <Button 
                   className="w-full" 
-                  onClick={() => handleDownloadReport('sales')}
+                  onClick={handlePrint}
                   disabled={isLoading || !startDate || !endDate}
                 >
                   <FileDown className="mr-2 h-4 w-4" />

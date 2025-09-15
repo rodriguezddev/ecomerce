@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { ArrowLeft, Edit, Printer, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
-import { orderService } from "@/services/api";
+import { orderService, productService } from "@/services/api";
 import { InvoicePDF } from "./InvoicePDF";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -19,6 +19,7 @@ interface Producto {
   nombre: string;
   precio: number;
   descuento?: number;
+  precioConDescuento?: number;
 }
 
 interface Item {
@@ -112,6 +113,14 @@ export default function InvoiceDetails({isShowEditButton = true}) {
     enabled: !!id,
   });
 
+    const { data: products } = useQuery({
+      queryKey: ["products"],
+      queryFn: productService.getProducts,
+      meta: {
+        onError: (error: Error) => console.error("Error fetching products:", error),
+      }
+    });
+
   useEffect(() => {
     if (isError) {
       console.error("Error al cargar el recibo:", error);
@@ -124,8 +133,19 @@ export default function InvoiceDetails({isShowEditButton = true}) {
   }, [isError, error, toast]);
 
   useEffect(() => {
+    console.log(orders)
     if (orders && orders.length !== 0) {
-      const details = orders.filter((detail) => detail?.factura?.id == id);
+      
+      const details = orders?.filter(order => order.factura?.id === Number(id));
+      console.log(details, "DETAILS")
+      products.map((product: any) => {
+        details[0].items.map((item: any) => {
+          if(item.producto.id === product.id){
+            item.producto.precioConDescuento = product.precioConDescuento
+            console.log(item.producto, "ITEMM")
+          }
+        })
+      })
       setInvoiceDetails(details);
     }
   }, [orders, id]);
@@ -137,25 +157,33 @@ export default function InvoiceDetails({isShowEditButton = true}) {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const paginatedItems = items.slice(startIndex, endIndex);
+  console.log(invoiceDetails, "ITEMSS")
 
   const calculateSubtotal = () => {
     if (!invoiceDetails[0]?.items) return 0;
     return invoiceDetails[0].items.reduce((sum: number, item: Item) => {
-      const precioConDescuento = item.producto.descuento
-        ? item.producto.precio * (1 - item.producto.descuento / 100)
-        : item.producto.precio;
-      return sum + (item.cantidad * precioConDescuento);
+
+      return sum + (item.cantidad * item.producto.precio);
+    }, 0);
+  };
+
+    const calculateTotal = () => {
+    if (!invoiceDetails[0]?.items) return 0;
+    return invoiceDetails[0].items.reduce((sum: number, item: Item) => {
+
+      return sum + (item.cantidad * item.producto.precioConDescuento);
     }, 0);
   };
 
   const subtotal = calculateSubtotal();
+
   const totalDescuentos = invoiceDetails[0]?.items?.reduce((sum, item) => {
     return item.producto.descuento
       ? sum + (item.cantidad * item.producto.precio * item.producto.descuento / 100)
       : sum;
   }, 0) || 0;
 
-  const total = subtotal;
+  const total = calculateTotal();
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -165,6 +193,8 @@ export default function InvoiceDetails({isShowEditButton = true}) {
     setItemsPerPage(Number(value));
     setCurrentPage(1);
   };
+
+  
 
   if (isLoading) {
     return <div className="flex justify-center items-center h-64">Cargando detalles del recibo...</div>;
@@ -277,7 +307,7 @@ export default function InvoiceDetails({isShowEditButton = true}) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Catálogo</TableHead>
+                <TableHead>Producto</TableHead>
                 <TableHead className="text-center">Cantidad</TableHead>
                 <TableHead className="text-right">Precio Unitario</TableHead>
                 <TableHead className="text-right">Descuento</TableHead>
@@ -286,19 +316,18 @@ export default function InvoiceDetails({isShowEditButton = true}) {
             </TableHeader>
             <TableBody>
               {paginatedItems.map((item: Item) => {
-                const precioConDescuento = item.producto.descuento
-                  ? item.producto.precio * (1 - item.producto.descuento / 100)
-                  : item.producto.precio;
-                
+              
                 return (
                   <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.producto.nombre}</TableCell>
                     <TableCell className="text-center">{item.cantidad}</TableCell>
                     <TableCell className="text-right">${item.producto.precio.toFixed(2)}</TableCell>
                     <TableCell className="text-right">
-                      {item.producto.descuento ? `${item.producto.descuento}%` : '-'}
+                      {
+                        `${(item.producto.precio - item.producto.precioConDescuento) / item.producto.precio * 100}%`
+                      }
                     </TableCell>
-                    <TableCell className="text-right">${(item.cantidad * precioConDescuento).toFixed(2)}</TableCell>
+                    <TableCell className="text-right">${(item.cantidad * item.producto.precioConDescuento).toFixed(2)}</TableCell>
                   </TableRow>
                 );
               })}
@@ -368,14 +397,9 @@ export default function InvoiceDetails({isShowEditButton = true}) {
         <CardFooter className="flex flex-col items-end space-y-2">
           <Separator />
           <div className="w-full max-w-xs ml-auto text-sm">
-            {totalDescuentos > 0 && (
-              <div className="flex justify-between">
-                <span className="text-muted-foreground">Descuentos totales:</span>
-                <span className="text-green-600">-${totalDescuentos.toFixed(2)}</span>
-              </div>
-            )}
+
             <div className="flex justify-between pt-4">
-              <span className="text-muted-foreground">Subtotal:</span>
+              <span className="text-muted-foreground">Total sin descuento:</span>
               <span>${subtotal.toFixed(2)}</span>
             </div>
             <Separator className="my-2" />

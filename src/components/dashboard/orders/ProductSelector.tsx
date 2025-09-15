@@ -72,11 +72,17 @@ export default function ProductSelector({
                       {products.map((product) => (
                         product.stock > 0 && (
                           <SelectItem key={product.id} value={product.id.toString()}>
-                            {product.nombre} - ${product.descuento ? (
-                            product.precio - (product.precio *
-                            (product.descuento / 100))
-                          ).toFixed(2) : product.precio.toFixed(2)}
-                          </SelectItem>
+  {product.nombre} - $
+  {(() => {
+    let finalPrice = product.precio;
+    if (product.descuento) {
+      finalPrice = product.precio - (product.precio * (product.descuento / 100));
+    } else if (product.categoria?.descuento) {
+      finalPrice = product.precio - (product.precio * (product.categoria.descuento / 100));
+    }
+    return finalPrice.toFixed(2);
+  })()}
+</SelectItem> 
                         )
                       ))}
                     </SelectContent>
@@ -118,7 +124,8 @@ export default function ProductSelector({
               <div className="h-10 flex items-center">
   ${(
     (selectedProducts[index].precio - 
-     (selectedProducts[index].precio * (selectedProducts[index].descuento / 100))) * 
+     (selectedProducts[index].precio * 
+      ((selectedProducts[index].descuento || selectedProducts[index].categoria?.descuento || 0) / 100))) * 
     (selectedProducts[index]?.cantidad || 0)
   ).toFixed(2)}
 </div>

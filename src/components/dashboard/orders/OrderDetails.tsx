@@ -95,7 +95,7 @@ export default function OrderDetails() {
 
   const calculateTotal = () => {
     return order.items?.reduce((sum: number, item: any) => {
-      return sum + item.cantidad * item.producto.precio;
+      return sum + item.cantidad * item.producto.precioConDescuento;
     }, 0) || 0;
   };
 
@@ -109,9 +109,14 @@ export default function OrderDetails() {
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h1 className="text-3xl font-bold">Detalles del Pedido #{order.id}</h1>
+          {
+            order?.estado == "Cancelado" && (
+<OrderStatusBadge status={order?.estado ? order?.estado : "-"} />
+            )
+          }
         </div>
         <div className="flex gap-2">
-          {order.pagado && (
+          {order?.pagado && (
             <Button variant="outline" asChild>
               <Link to={`/dashboard/recibo/${order?.factura?.id}`}>
                 <FileText className="mr-2 h-4 w-4" /> Ver Recibo
@@ -119,16 +124,16 @@ export default function OrderDetails() {
             </Button>
           )}
           {
-            order.estado == "Cancelado" && (
+            (order?.estado !== "Cancelado" && order?.pagos?.length == 0) && (
               <Button variant="secondary" asChild>
-                <Link to={`/dashboard/pagos/nuevo?orderId=${order.id}`}>
+                <Link to={`/dashboard/pagos/nuevo/${order.id}`}>
                   <CreditCard className="mr-2 h-4 w-4" /> Registrar Pago
                 </Link>
               </Button>
             )
           }
           {
-            order.estado !== "Pedido enviado" && (
+            (order.estado !== "Pedido enviado" && order.estado !== "Cancelado" ) && (
           <Button asChild>
             <Link to={`/dashboard/pedidos/editar/${order.id}`}>
               <Edit className="mr-2 h-4 w-4" /> Actualizar Estatus
@@ -136,6 +141,8 @@ export default function OrderDetails() {
           </Button>
             )
 }
+
+
         </div>
       </div>
 
@@ -145,10 +152,10 @@ export default function OrderDetails() {
             <CardHeader><CardTitle>Información del Pedido</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center gap-3"><Hash className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">ID del Pedido</p><p className="font-medium">#{order.id}</p></div></div>
-              <div className="flex items-center gap-3"><Calendar className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Fecha</p><p className="font-medium">{formatDate(new Date(order.fecha))}</p></div></div>
-              <div className="flex items-center gap-3"><Truck className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Estado</p><OrderStatusBadge status={order.estado} /></div></div>
-              <div className="flex items-center gap-3"><CreditCard className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Pago</p><Badge variant={order.pagado ? "default" : "outline"}>{order.pagado ? "Pagado" : "Pendiente"}</Badge></div></div>
-              <div className="flex items-center gap-3"><ShoppingBag className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Tipo</p><p className="font-medium">{order.tipoDePedido}</p></div></div>
+              <div className="flex items-center gap-3"><Calendar className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Fecha</p><p className="font-medium">{order?.fecha ? formatDate(new Date(order?.fecha)) : "-"}</p></div></div>
+              <div className="flex items-center gap-3"><Truck className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Estado</p><OrderStatusBadge status={order?.estado ? order?.estado : "-"} /></div></div>
+              <div className="flex items-center gap-3"><CreditCard className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Pago</p><Badge variant={order?.pagado ? "default" : "outline"}>{order?.pagado ? "Pagado" : "Pendiente"}</Badge></div></div>
+              <div className="flex items-center gap-3"><ShoppingBag className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Tipo</p><p className="font-medium">{order?.tipoDePedido}</p></div></div>
             </CardContent>
           </Card>
 
@@ -187,8 +194,8 @@ export default function OrderDetails() {
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">{item.producto.nombre}</TableCell>
                       <TableCell className="text-center">{item.cantidad}</TableCell>
-                      <TableCell className="text-right">${(item.producto.precio - (item.producto.precio * (item.producto.descuento / 100)))}</TableCell>
-                      <TableCell className="text-right">${(item.cantidad * item.producto.precio).toFixed(2)}</TableCell>
+                      <TableCell className="text-right">${(item.producto.precioConDescuento)}</TableCell>
+                      <TableCell className="text-right">${(item.cantidad * item.producto.precioConDescuento).toFixed(2)}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
