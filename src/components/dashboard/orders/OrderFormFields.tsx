@@ -125,7 +125,10 @@ export default function OrderFormFields({
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem 
+                    {
+                      envio?.metodoDeEntrega !== "Retiro en tienda" && (
+                        <>
+                        <SelectItem 
                       value="Pedido en verificacion de pago" 
                       disabled={isPaid}
                     >
@@ -135,6 +138,10 @@ export default function OrderFormFields({
                       En proceso de empaquetado
                     </SelectItem>
                     <SelectItem value="Pedido enviado">Enviado</SelectItem>
+                        </>
+                      )
+                    }
+                    
                     {
                       envio?.metodoDeEntrega === "Retiro en tienda" && (
 <SelectItem value="Disponible para entregar">Disponible para entrega</SelectItem>
