@@ -209,11 +209,7 @@ const ReporteProductosMenosVendidos: React.FC<ReporteProductosMenosVendidosProps
                 ) : (
                   productosMenosVendidos.map((producto, index) => (
                     <tr 
-                      key={producto.producto_id} 
-                      style={{ 
-                        backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'transparent',
-                        ...(index === 0 ? { backgroundColor: '#ffebee', fontWeight: 'bold' } : {})
-                      }}
+                      key={producto.producto_id}
                     >
                       <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{producto.producto_id}</td>
                       <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'left' }}>{producto.producto_nombre}</td>

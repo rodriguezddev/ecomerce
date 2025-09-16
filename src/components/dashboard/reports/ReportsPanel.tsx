@@ -22,6 +22,7 @@ import ReporteVentasCategoria from "./ReporteVentasCategoria";
 import ReporteProductosSinStock from "./ReporteProductosSinStock";
 import ReporteProductosMasVendidos from "./ReporteProductosMasVendidos";
 import ReporteProductosMenosVendidos from "./ReporteProductosMenosVendidos";
+import ReporteInventario from "./ReporteInventario";
 
 export default function ReportsPanel() {
   const { toast } = useToast();
@@ -120,6 +121,20 @@ export default function ReportsPanel() {
   const pdfRefZeroStock = useRef<HTMLDivElement>(null);
   const pdfRefTopSelling = useRef<HTMLDivElement>(null);
   const pdfRefLeastSelling = useRef<HTMLDivElement>(null);
+  const pdfRefInventory = useRef<HTMLDivElement>(null);
+
+  const handlePrintInventory = useReactToPrint({
+    contentRef: pdfRefInventory,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 10mm;
+      }
+      body {
+        font-family: Arial, sans-serif; 
+      }
+    `
+  });
 
   const handlePrintLeastSelling = useReactToPrint({
     contentRef: pdfRefLeastSelling,
@@ -384,26 +399,32 @@ export default function ReportsPanel() {
 </Card>
 
           <Card style={{ minHeight: '10rem' }} className="display flex flex-col justify-between">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <AlignEndVertical className="mr-2 h-5 w-5 rotate-180" />
-                Inventario Actual
-              </CardTitle>
-              <CardDescription className="pt-3">
-                Informe detallado del inventario actual de productos
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                onClick={() => handleDownloadReport('inventory')}
-                disabled={isLoading}
-              >
-                <FileDown className="mr-2 h-4 w-4" />
-                Descargar Reporte
-              </Button>
-            </CardContent>
-          </Card>
+  <div ref={pdfRefInventory} className="hidden print:block">
+    <ReporteInventario
+      empresa="Repuestos y Accesorios M&C&, C.A"
+      año={new Date().getFullYear().toString()}
+    />
+  </div>
+  <CardHeader>
+    <CardTitle className="flex items-center">
+      <AlignEndVertical className="mr-2 h-5 w-5 rotate-180" />
+      Inventario Actual
+    </CardTitle>
+    <CardDescription className="pt-3">
+      Informe detallado del inventario actual de productos
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    <Button 
+      className="w-full" 
+      onClick={handlePrintInventory}
+      disabled={isLoading}
+    >
+      <FileDown className="mr-2 h-4 w-4" />
+      Descargar Reporte
+    </Button>
+  </CardContent>
+</Card>
         </TabsContent>
       </Tabs>
     </div>

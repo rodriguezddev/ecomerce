@@ -150,9 +150,6 @@ const ReporteProductosSinStock: React.FC<ReporteProductosSinStockProps> = ({
                   productosSinStock.map((producto, index) => (
                     <tr 
                       key={producto.id} 
-                      style={{ 
-                        backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'transparent'
-                      }}
                     >
                       <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{producto.id}</td>
                       <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{producto.nombre}</td>

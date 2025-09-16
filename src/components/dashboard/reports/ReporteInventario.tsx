@@ -1,95 +1,37 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React from 'react';
 import bgT from '../../../assets/bg-t.png';
 import bgB from '../../../assets/bg-b.png';
 import logoBlanco from '../../../assets/M&C7_logo_blanco.png';
 import { useQuery } from '@tanstack/react-query';
-import { orderService } from '@/services/api';
+import { productService } from '@/services/api';
 
-interface ProductoMasVendido {
-  producto_id: number;
-  producto_nombre: string;
-  producto_codigo: string;
-  totalProductos: number;
+interface ProductoInventario {
+  id: number;
+  nombre: string;
+  codigo: string;
+  cantidad: number;
 }
 
-interface ReporteProductosMasVendidosProps {
-  empresa: string;
-  año: string;
+interface ReporteInventarioProps {
+  empresa?: string;
+  año?: string;
 }
 
-const ReporteProductosMasVendidos: React.FC<ReporteProductosMasVendidosProps> = ({
+const ReporteInventario: React.FC<ReporteInventarioProps> = ({
   empresa = 'Repuestos y Accesorios M&C&, C.A',
   año = new Date().getFullYear().toString()
 }) => {
-  const [productosMasVendidos, setProductosMasVendidos] = useState<ProductoMasVendido[]>([]);
-
   const {
-    data: orders = [],
+    data: products = [],
     isLoading,
     error,
   } = useQuery({
-    queryKey: ["orders"],
-    queryFn: async () => {
-      const response = await orderService.getOrders();
-      return response || [];
-    },
+    queryKey: ["products"],
+    queryFn: productService.getProducts,
   });
 
-  // Procesar datos para obtener los productos más vendidos
-  const procesarProductosMasVendidos = useMemo(() => {
-    // Filtrar órdenes válidas (con factura, pagadas y no canceladas)
-    const ordenesValidas = orders.filter((order: any) => 
-      order.factura && order.pagado && !order.cancelado
-    );
-
-    // Objeto para acumular ventas por producto
-    const ventasPorProducto: Record<number, {
-      id: number;
-      nombre: string;
-      codigo: string;
-      cantidad: number;
-    }> = {};
-
-    // Procesar cada orden válida
-    ordenesValidas.forEach((order: any) => {
-      order.items.forEach((item: any) => {
-        const productoId = item.producto.id;
-        const productoNombre = item.producto.nombre;
-        const productoCodigo = item.producto.codigo;
-        const cantidad = item.cantidad;
-
-        // Si el producto no existe en el objeto, inicializarlo
-        if (!ventasPorProducto[productoId]) {
-          ventasPorProducto[productoId] = {
-            id: productoId,
-            nombre: productoNombre,
-            codigo: productoCodigo,
-            cantidad: 0
-          };
-        }
-
-        // Sumar la cantidad vendida
-        ventasPorProducto[productoId].cantidad += cantidad;
-      });
-    });
-
-    // Convertir a array y ordenar por cantidad descendente
-    const productosArray = Object.values(ventasPorProducto)
-      .map(producto => ({
-        producto_id: producto.id,
-        producto_nombre: producto.nombre,
-        producto_codigo: producto.codigo,
-        totalProductos: producto.cantidad
-      }))
-      .sort((a, b) => b.totalProductos - a.totalProductos)
-      .slice(0, 10); // Tomar solo los 10 primeros
-
-    return productosArray;
-  }, [orders]);
-
-  useEffect(() => {
-    setProductosMasVendidos(procesarProductosMasVendidos);
-  }, [procesarProductosMasVendidos]);
+  // Filtrar productos con stock mayor a cero
+  const productosConStock = products.filter((product: any) => product.stock > 0);
 
   // Obtener fecha actual formateada
   const obtenerFechaActual = () => {
@@ -98,11 +40,11 @@ const ReporteProductosMasVendidos: React.FC<ReporteProductosMasVendidosProps> = 
   };
 
   if (isLoading) {
-    return <div>Cargando órdenes...</div>;
+    return <div>Cargando productos...</div>;
   }
 
   if (error) {
-    return <div>Error al cargar las órdenes: {(error as Error).message}</div>;
+    return <div>Error al cargar los productos: {(error as Error).message}</div>;
   }
 
   return (
@@ -181,7 +123,7 @@ const ReporteProductosMasVendidos: React.FC<ReporteProductosMasVendidosProps> = 
         </div>
         
         <div className="content" style={{ padding: '8px' }}>
-          <h2 style={{ fontSize: '12px', margin: '0 0 6px 0', textAlign: 'center' }}>Productos Más Vendidos</h2>
+          <h2 style={{ fontSize: '12px', margin: '0 0 6px 0', textAlign: 'center' }}>Inventario actual</h2>
           
           <div className="table-container" style={{ width: '100%', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '8px', fontSize: '8px' }}>
@@ -190,25 +132,38 @@ const ReporteProductosMasVendidos: React.FC<ReporteProductosMasVendidosProps> = 
                   <th style={{ backgroundColor: '#bc1823', fontWeight: 'bold', fontSize: '7px', textAlign: 'center', color: 'white', border: '1px solid transparent', padding: '2px 3px' }}>ID</th>
                   <th style={{ backgroundColor: '#bc1823', fontWeight: 'bold', fontSize: '7px', textAlign: 'center', color: 'white', border: '1px solid transparent', padding: '2px 3px' }}>Producto</th>
                   <th style={{ backgroundColor: '#bc1823', fontWeight: 'bold', fontSize: '7px', textAlign: 'center', color: 'white', border: '1px solid transparent', padding: '2px 3px' }}>Código</th>
-                  <th style={{ backgroundColor: '#bc1823', fontWeight: 'bold', fontSize: '7px', textAlign: 'center', color: 'white', border: '1px solid transparent', padding: '2px 3px' }}>Cantidad Vendida</th>
+                  <th style={{ backgroundColor: '#bc1823', fontWeight: 'bold', fontSize: '7px', textAlign: 'center', color: 'white', border: '1px solid transparent', padding: '2px 3px' }}>Cantidad</th>
                 </tr>
               </thead>
               <tbody>
-                {productosMasVendidos.length === 0 ? (
+                {productosConStock.length === 0 ? (
                   <tr>
                     <td colSpan={4} style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>
-                      No hay datos de productos vendidos
+                      No hay productos con stock disponible
                     </td>
                   </tr>
                 ) : (
-                  productosMasVendidos.map((producto, index) => (
+                  productosConStock.map((producto: any, index: number) => (
                     <tr 
-                      key={producto.producto_id} 
+                      key={producto.id} 
+                      style={{ 
+                        backgroundColor: index % 2 === 0 ? '#f9f9f9' : 'transparent',
+                        ...(producto.stock < 3 ? { backgroundColor: '#fff3cd' } : {})
+                      }}
                     >
-                      <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{producto.producto_id}</td>
-                      <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'left' }}>{producto.producto_nombre}</td>
-                      <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{producto.producto_codigo}</td>
-                      <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{producto.totalProductos}</td>
+                      <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{producto.id}</td>
+                      <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'left' }}>{producto.nombre}</td>
+                      <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{producto.codigo}</td>
+                      <td 
+                        style={{ 
+                          border: '1px solid transparent', 
+                          padding: '2px 3px', 
+                          textAlign: 'center',
+                        }}
+                      >
+                        {producto.stock}
+                       
+                      </td>
                     </tr>
                   ))
                 )}
@@ -216,6 +171,7 @@ const ReporteProductosMasVendidos: React.FC<ReporteProductosMasVendidosProps> = 
             </table>
           </div>
 
+         
         </div>
         
         <div 
@@ -236,7 +192,7 @@ const ReporteProductosMasVendidos: React.FC<ReporteProductosMasVendidosProps> = 
           })}
         </div>
         
-       <div 
+        <div 
           className="footer"
           style={{
             backgroundImage: `url(${bgB})`,
@@ -272,7 +228,7 @@ const ReporteProductosMasVendidos: React.FC<ReporteProductosMasVendidosProps> = 
             }} 
           />
           <p style={{ marginTop: '3rem', fontSize: '14px', zIndex: 1 }}>
-            Reporte generado automáticamente - {empresa} &copy; {año}
+            Este reporte fue generado automáticamente - {empresa} &copy; {año}
           </p>
         </div>
       </div>
@@ -280,5 +236,4 @@ const ReporteProductosMasVendidos: React.FC<ReporteProductosMasVendidosProps> = 
   );
 };
 
-
-export default ReporteProductosMasVendidos;
+export default ReporteInventario;
