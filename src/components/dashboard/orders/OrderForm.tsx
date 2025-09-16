@@ -525,7 +525,7 @@ export default function OrderForm() {
           title: "Pedido actualizado",
           description: "El pedido ha sido actualizado correctamente",
         });
-        navigate("/dashboard/pedidos");
+        //navigate("/dashboard/pedidos");
       } else {
         const createdOrder = await orderService.createOrder(values);
 
@@ -653,6 +653,7 @@ console.log(showCancelDialog, previousEstado)
         show={showSuccessModal} 
         onClose={handleredirect} 
         orderData={createdOrderData} 
+        isEditing={isEditing}
       />
       
       <CancelOrderDialog

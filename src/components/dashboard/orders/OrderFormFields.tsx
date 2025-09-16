@@ -77,6 +77,33 @@ export default function OrderFormFields({
 
         <FormField
           control={form.control}
+          name="pagado"
+          render={({ field }) => (
+            <FormItem>
+              <div className="space-y-0.5">
+                <FormLabel>Estado de Pago</FormLabel>
+              </div>
+              <Select 
+                onValueChange={(value) => field.onChange(value === "true")} 
+                value={field.value.toString()}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="true">Pagado</SelectItem>
+                  <SelectItem value="false">Pendiente</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        <FormField
+          control={form.control}
           name="estado"
           render={({ field }) => {
             const isPaid = form.watch("pagado");
@@ -104,7 +131,7 @@ export default function OrderFormFields({
                       En proceso de empaquetado
                     </SelectItem>
                     <SelectItem value="Pedido enviado">Enviado</SelectItem>
-                    <SelectItem value="Disponible para entrega">Disponible para entrega</SelectItem>
+                    <SelectItem value="Disponible para entregar">Disponible para entrega</SelectItem>
                     <SelectItem value="Cancelado">Cancelado</SelectItem>
                   </SelectContent>
                 </Select>
@@ -114,32 +141,7 @@ export default function OrderFormFields({
           }}
         />
 
-        <FormField
-          control={form.control}
-          name="pagado"
-          render={({ field }) => (
-            <FormItem>
-              <div className="space-y-0.5">
-                <FormLabel>Estado de Pago</FormLabel>
-              </div>
-              <Select 
-                onValueChange={(value) => field.onChange(value === "true")} 
-                value={field.value.toString()}
-              >
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="true">Pagado</SelectItem>
-                  <SelectItem value="false">Pendiente</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        
 
         <FormField
           control={form.control}

@@ -18,7 +18,7 @@ interface OrderSuccessModalProps {
   orderData: Pedido | null;
 }
 
-export default function OrderSuccessModal({ show, onClose, orderData }: OrderSuccessModalProps) {
+export default function OrderSuccessModal({ show, onClose, orderData, isEditing }: OrderSuccessModalProps) {
   const { toast } = useToast();
   
   const copyToClipboard = (text: string) => {
@@ -35,10 +35,28 @@ export default function OrderSuccessModal({ show, onClose, orderData }: OrderSuc
     <Dialog open={show} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Pedido Creado Exitosamente</DialogTitle>
-          <DialogDescription>
+          {
+!isEditing ? (
+  <>
+  <DialogTitle>Pedido Creado Exitosamente</DialogTitle>
+   <DialogDescription>
             El pedido ha sido registrado en el sistema.
           </DialogDescription>
+  </>
+            
+          ) : (
+            <>
+            <DialogTitle>Pedido Actualizado Exitosamente</DialogTitle>
+             <DialogDescription>
+            El pedido ha sido actualziado en el sistema.
+            </DialogDescription>
+            </>
+            
+          ) 
+          }
+
+          
+         
         </DialogHeader>
         
         <div className="space-y-4">
@@ -69,7 +87,7 @@ export default function OrderSuccessModal({ show, onClose, orderData }: OrderSuc
               <div className="flex items-center gap-2">
                 <span className="text-sm">#{orderData.factura.id}</span>
                 <Button variant="ghost" size="icon" asChild>
-                  <Link to={`/dashboard/recibos/${orderData.factura?.id}`}>
+                  <Link to={`/dashboard/recibo/${orderData.factura?.id}`}>
                     <Eye size={16} />
                   </Link>
                 </Button>
