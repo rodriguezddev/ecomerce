@@ -34,6 +34,7 @@ interface OrderFormFieldsProps {
 
 export default function OrderFormFields({ 
   form, 
+  envio,
   profiles, 
   isEditing, 
   isOrderCreated,
@@ -44,6 +45,9 @@ export default function OrderFormFields({
   handleProductSelection,
   handleQuantityChange
 }: OrderFormFieldsProps) {
+
+  console.log(envio, "envio en order form fields");
+
   return (
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -131,7 +135,12 @@ export default function OrderFormFields({
                       En proceso de empaquetado
                     </SelectItem>
                     <SelectItem value="Pedido enviado">Enviado</SelectItem>
-                    <SelectItem value="Disponible para entregar">Disponible para entrega</SelectItem>
+                    {
+                      envio?.metodoDeEntrega === "Retiro en tienda" && (
+<SelectItem value="Disponible para entregar">Disponible para entrega</SelectItem>
+                      )
+                    }
+                    
                     <SelectItem value="Cancelado">Cancelado</SelectItem>
                   </SelectContent>
                 </Select>

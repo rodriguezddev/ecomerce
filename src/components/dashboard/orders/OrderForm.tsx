@@ -13,7 +13,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/componen
 import { Form } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Loader2, Trash2, Undo2 } from "lucide-react";
-import { productServiceExtensions } from "@/services/api-dashboard";
+import { productServiceExtensions, shippingCompanyService } from "@/services/api-dashboard";
 import { apiBcv, productService } from "@/services/api";
 
 // Components
@@ -71,6 +71,7 @@ export default function OrderForm() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [previousEstado, setPreviousEstado] = useState<string>("");
   const [voucherError, setVoucherError] = useState<string>(""); // Estado para error del voucher
+  const [envio, setEnvio] = useState<any>(null); // Estado para datos de envío
 
   const form = useForm<OrderFormValues>({
     resolver: zodResolver(orderFormSchema),
@@ -152,6 +153,19 @@ export default function OrderForm() {
     enabled: isEditing,
   });
 
+      const {
+    data: shipments = [],
+    isLoading,
+    error,
+    refetch,
+  } = useQuery({
+    queryKey: ["shipments"],
+    queryFn: async () => {
+      const response = await shippingCompanyService.getShipments();
+      return response || [];
+    },
+  });
+
   // Fetch products
   const { data: products = [], isLoading: productsLoading } = useQuery({
     queryKey: ["products"],
@@ -215,6 +229,15 @@ export default function OrderForm() {
       }
     }
   }, [order, isEditing, form]);
+
+  useEffect(() => {
+    if (shipments.length !== 0 && !isLoading) {
+     const shipment = shipments?.find(s => s.pedido.id === Number(id)) || null;
+     console.log(shipment, "sasadsa")
+     setEnvio(shipment);
+    }
+  }, [shipments])
+  
 
   const addProduct = () => {
     const items = form.getValues("items");
@@ -721,6 +744,7 @@ console.log(showCancelDialog, previousEstado)
                 <OrderFormFields 
                   form={form}
                   profiles={profiles || []}
+                  envio={envio}
                   isEditing={isEditing}
                   isOrderCreated={isOrderCreated}
                   products={products}
