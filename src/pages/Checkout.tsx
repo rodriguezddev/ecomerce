@@ -793,9 +793,11 @@ const Checkout = () => {
 
           {/* Order Summary */}
           <div className="order-2 lg:order-2">
-            <Card className="sticky top-8">
+            <div className="sticky top-8">
+<Card >
               <CardHeader>
                 <CardTitle>Resumen del Pedido</CardTitle>
+                <p className="text-sm">Para una mejor experiencia, le sugerimos revisar su selección antes de finalizar la compra, ya que los artículos no son elegibles para devolución una vez adquiridos.</p>
                 <CardDescription>
                   {cart.length} {cart.length === 1 ? "artículo" : "artículos"}
                 </CardDescription>
@@ -856,6 +858,10 @@ const Checkout = () => {
                 </div>
               </CardFooter>
             </Card>
+                            <p className="text-sm m-3 text-[#e52727]">Para una mejor experiencia, le sugerimos revisar su selección antes de finalizar la compra, ya que los artículos no son elegibles para devolución una vez adquiridos.</p>
+
+            </div>
+            
           </div>
         </div>
       </main>
