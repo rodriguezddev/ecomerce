@@ -61,7 +61,6 @@ export default function DashboardLayout() {
 
   const handleLogout = () => {
     logout();
-    navigate("/");
     toast({
       title: "Sesión cerrada",
       description: "Ha cerrado sesión correctamente",

@@ -7,12 +7,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Edit, Printer, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
+import { ArrowLeft, Edit, Printer, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { Separator } from "@/components/ui/separator";
 import { orderService, productService } from "@/services/api";
 import { InvoicePDF } from "./InvoicePDF";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 interface Producto {
   id: number;
@@ -279,12 +280,21 @@ export default function InvoiceDetails({isShowEditButton = true}) {
           <p className="text-sm text-muted-foreground">
             <strong>Método de entrega:</strong> {envio.metodoDeEntrega}
           </p>
-          <p className="text-sm text-muted-foreground">
-            <strong>Número de guía:</strong> {envio.numeroDeGuia}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            <strong>Empresa de envíos:</strong> {envio.direccionEmpresa}
-          </p>
+          {
+            envio.metodoDeEntrega === "Retiro en tienda" ? ( 
+              <Badge variant="default" className="px-2 py-1">Disponible para entrega</Badge>
+            ) : ( 
+              <>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Número de guía:</strong> {envio.numeroDeGuia}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Empresa de envíos:</strong> {envio.direccionEmpresa}
+                </p>
+              </>
+             )
+          }
+          
           {/* <p className="text-sm text-muted-foreground">
             <strong>Destinatario:</strong> {envio.destinatarioNombre} {envio.destinatarioApellido}
           </p>
