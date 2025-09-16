@@ -242,11 +242,16 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
             height: '10.5rem'
           }}
         >
+          <img 
+              src={bgT}
+              alt={`Logo ${empresa}`} 
+              style={{ width: '100%', height: '10.5rem', position: 'absolute', top: '0', left: '0', zIndex: -1, }} 
+            />
           <div className="info">
-            <h2 style={{ fontSize: '16px', margin: '0', fontWeight: 'bold' }}>Repuestos y Accesorios M&C&, C.A</h2>
-            <h2 style={{ fontSize: '16px', margin: '2px 0 0 0', fontWeight: '400', color: '#f7f7f7', textAlign: 'start' }}>J-50242661-2</h2>
-            <h2 style={{ fontSize: '16px', margin: '2px 0 0 0', fontWeight: '400', color: '#f7f7f7', textAlign: 'start' }}>AV. Principal de Naguagua</h2>
-            <h2 style={{ fontSize: '16px', margin: '2px 0 0 0', fontWeight: '400', color: '#f7f7f7', textAlign: 'start' }}>(0424) 571 50 37</h2>
+            <h2 style={{ fontSize: '14px', margin: '0', fontWeight: 'bold' }}>Repuestos y Accesorios M&C&, C.A</h2>
+            <h2 style={{ fontSize: '14px', margin: '2px 0 0 0', fontWeight: '400', color: '#f7f7f7', textAlign: 'start' }}>J-50242661-2</h2>
+            <h2 style={{ fontSize: '14px', margin: '2px 0 0 0', fontWeight: '400', color: '#f7f7f7', textAlign: 'start' }}>AV. Principal de Naguagua</h2>
+            <h2 style={{ fontSize: '14px', margin: '2px 0 0 0', fontWeight: '400', color: '#f7f7f7', textAlign: 'start' }}>(0424) 571 50 37</h2>
           </div>
           <div 
             className="logo"
@@ -256,7 +261,9 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
               justifyContent: 'center',
               alignItems: 'center',
               padding: '2px',
-              flexShrink: '0'
+              flexShrink: '0',
+              position: 'relative',
+
             }}
           >
             <img 
@@ -411,6 +418,11 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
             bottom: '0'
           }}
         >
+          <img 
+              src={bgB}
+              alt={`Logo ${empresa}`} 
+              style={{ width: '100%', height: '10.5rem', position: 'absolute', bottom: '0', left: '0', zIndex: -1, }} 
+            />
           <p style={{ marginTop: '3rem', fontSize: '14px' }}>
             Reporte generado automáticamente - {empresa} &copy; {año}
           </p>

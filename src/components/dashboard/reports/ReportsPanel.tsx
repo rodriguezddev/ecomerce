@@ -18,6 +18,10 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useReactToPrint } from "react-to-print";
 import ReporteVentasDiarias from "./ReporteVentasDiarias";
+import ReporteVentasCategoria from "./ReporteVentasCategoria";
+import ReporteProductosSinStock from "./ReporteProductosSinStock";
+import ReporteProductosMasVendidos from "./ReporteProductosMasVendidos";
+import ReporteProductosMenosVendidos from "./ReporteProductosMenosVendidos";
 
 export default function ReportsPanel() {
   const { toast } = useToast();
@@ -112,9 +116,65 @@ export default function ReportsPanel() {
 
   // Añade esta función para manejar la impresión
   const pdfRef = useRef<HTMLDivElement>(null);
+  const pdfRefCat = useRef<HTMLDivElement>(null);
+  const pdfRefZeroStock = useRef<HTMLDivElement>(null);
+  const pdfRefTopSelling = useRef<HTMLDivElement>(null);
+  const pdfRefLeastSelling = useRef<HTMLDivElement>(null);
+
+  const handlePrintLeastSelling = useReactToPrint({
+    contentRef: pdfRefLeastSelling,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 10mm;
+      }
+      body {
+        font-family: Arial, sans-serif; 
+      }
+    `
+  });
+
+  const handlePrintTopSelling = useReactToPrint({
+    contentRef: pdfRefTopSelling,
+    pageStyle: `
+      @page {
+        size: A4; 
+        margin: 10mm;
+      }
+      body {  
+        font-family: Arial, sans-serif;
+      }
+    `
+  });
+
+  const handlePrintZeroStock = useReactToPrint({
+    contentRef: pdfRefZeroStock,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 10mm;
+      }
+      body {
+        font-family: Arial, sans-serif;
+      }
+    `
+  });
   
   const handlePrint = useReactToPrint({
     contentRef: pdfRef,
+    pageStyle: `
+      @page {
+        size: A4;
+        margin: 10mm;
+      }
+      body {
+        font-family: Arial, sans-serif;
+      }
+    `
+  });
+
+    const handlePrintcat = useReactToPrint({
+    contentRef: pdfRefCat,
     pageStyle: `
       @page {
         size: A4;
@@ -209,6 +269,12 @@ export default function ReportsPanel() {
             </Card>
             
             <Card style={{ minHeight: '13rem' }} className="display flex flex-col justify-between">
+               <div ref={pdfRefCat} className="hidden print:block">
+                      <ReporteVentasCategoria  
+                          periodoInicial={startDate}
+                          periodoFinal={endDate}
+                      />
+                    </div>
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Tag className="mr-2 h-5 w-5" />
@@ -221,7 +287,7 @@ export default function ReportsPanel() {
               <CardContent>
                 <Button 
                   className="w-full" 
-                  onClick={() => handleDownloadReport('categorySales')}
+                  onClick={handlePrintcat}
                   disabled={isLoading || !startDate || !endDate}
                 >
                   <FileDown className="mr-2 h-4 w-4" />
@@ -234,70 +300,88 @@ export default function ReportsPanel() {
         
         <TabsContent value="inventory" className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card style={{ minHeight: '10rem' }} className="display flex flex-col justify-between">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <PackageMinus className="mr-2 h-5 w-5" />
-                Productos Sin Stock
-              </CardTitle>
-              <CardDescription className="pt-3">
-                Informe de productos con existencia cero
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                onClick={() => handleDownloadReport('zeroStock')}
-                disabled={isLoading}
-              >
-                <FileDown className="mr-2 h-4 w-4" />
-                Descargar Reporte
-              </Button>
-            </CardContent>
-          </Card>
+  <div ref={pdfRefZeroStock} className="hidden print:block">
+    <ReporteProductosSinStock
+      empresa="Repuestos y Accesorios M&C&, C.A"
+      año={new Date().getFullYear().toString()}
+    />
+  </div>
+  <CardHeader>
+    <CardTitle className="flex items-center">
+      <PackageMinus className="mr-2 h-5 w-5" />
+      Productos Sin Stock
+    </CardTitle>
+    <CardDescription className="pt-3">
+      Informe de productos con existencia cero
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    <Button 
+      className="w-full" 
+      onClick={handlePrintZeroStock}
+      disabled={isLoading}
+    >
+      <FileDown className="mr-2 h-4 w-4" />
+      Descargar Reporte
+    </Button>
+  </CardContent>
+</Card>
           
           <Card style={{ minHeight: '10rem' }} className="display flex flex-col justify-between">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <BarChart4 className="mr-2 h-5 w-5" />
-                Productos Más Vendidos
-              </CardTitle>
-              <CardDescription className="pt-3">
-                Ranking de los productos con mayores ventas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                onClick={() => handleDownloadReport('topSelling')}
-                disabled={isLoading}
-              >
-                <FileDown className="mr-2 h-4 w-4" />
-                Descargar Reporte
-              </Button>
-            </CardContent>
-          </Card>
+  <div ref={pdfRefTopSelling} className="hidden print:block">
+    <ReporteProductosMasVendidos
+      empresa="Repuestos y Accesorios M&C&, C.A"
+      año={new Date().getFullYear().toString()}
+    />
+  </div>
+  <CardHeader>
+    <CardTitle className="flex items-center">
+      <BarChart4 className="mr-2 h-5 w-5" />
+      Productos Más Vendidos
+    </CardTitle>
+    <CardDescription className="pt-3">
+      Ranking de los productos con mayores ventas
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    <Button 
+      className="w-full" 
+      onClick={handlePrintTopSelling}
+      disabled={isLoading}
+    >
+      <FileDown className="mr-2 h-4 w-4" />
+      Descargar Reporte
+    </Button>
+  </CardContent>
+</Card>
           
           <Card style={{ minHeight: '10rem' }} className="display flex flex-col justify-between">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <BarChart4 className="mr-2 h-5 w-5 rotate-180" />
-                Productos Menos Vendidos
-              </CardTitle>
-              <CardDescription className="pt-3">
-                Ranking de los productos con menos ventas
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button 
-                className="w-full" 
-                onClick={() => handleDownloadReport('leastSelling')}
-                disabled={isLoading}
-              >
-                <FileDown className="mr-2 h-4 w-4" />
-                Descargar Reporte
-              </Button>
-            </CardContent>
-          </Card>
+  <div ref={pdfRefLeastSelling} className="hidden  print:block">
+    <ReporteProductosMenosVendidos
+      empresa="Repuestos y Accesorios M&C&, C.A"
+      año={new Date().getFullYear().toString()}
+    />
+  </div>
+  <CardHeader>
+    <CardTitle className="flex items-center">
+      <BarChart4 className="mr-2 h-5 w-5 rotate-180" />
+      Productos Menos Vendidos
+    </CardTitle>
+    <CardDescription className="pt-3">
+      Ranking de los productos con menos ventas
+    </CardDescription>
+  </CardHeader>
+  <CardContent>
+    <Button 
+      className="w-full" 
+      onClick={handlePrintLeastSelling}
+      disabled={isLoading}
+    >
+      <FileDown className="mr-2 h-4 w-4" />
+      Descargar Reporte
+    </Button>
+  </CardContent>
+</Card>
 
           <Card style={{ minHeight: '10rem' }} className="display flex flex-col justify-between">
             <CardHeader>
