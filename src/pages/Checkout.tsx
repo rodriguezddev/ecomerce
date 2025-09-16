@@ -426,7 +426,7 @@ const Checkout = () => {
       };
 
       // Agregar datos de quien retira si es retiro en tienda
-      if (deliveryMethod === "national_shipping") {
+      if (deliveryMethod === "national_shipping" || deliveryMethod === "local_shipping") {
         if (usarDatosCliente) {
           shippingData.destinatarioNombre = datosQuienRetira.nombre || "";
           shippingData.destinatarioApellido = datosQuienRetira?.apellido || "";

@@ -126,13 +126,29 @@ const handleResponse = async (response: Response) => {
     try {
       const textData = await responseClone.text();
       
-      if (!response.ok) {
-        throw new Error(textData || `HTTP error! status: ${response.status}`);
+      console.log(jsonError, responseClone, "XXXXXXXX")
+      if (responseClone.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/';
+      }
+
+      if (!responseClone.ok) {
+        toast({
+        variant: "destructive",
+        title: "Sesion expirada",
+        // Here's the key change: use the error.message from your service
+        description: "Inicia sesión nuevamente para ejecutar alguna acción.",
+      });
+        throw new Error(textData || `HTTP error! status: ${responseClone.status}`);
       }
       
       return textData;
     } catch (textError) {
-      console.error('Error reading response:', textError);
+      
+
+
+      console.log('Error reading response:', textError.message, textError);
       throw new Error('Failed to parse server response');
     }
   }
@@ -1004,6 +1020,7 @@ export const shippingService = {
       }
 
       const response = await fetch(`${import.meta.env.VITE_API_URL}envios`, {
+        method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`
         }

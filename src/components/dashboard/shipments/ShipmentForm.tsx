@@ -399,6 +399,7 @@ export default function ShipmentForm() {
         if (values.empresaId) {
           formData.append("empresaId", values.empresaId.toString());
         }
+        
         formData.append("pedidoId", values.pedidoId.toString());
         formData.append("direccionEmpresa", values.direccionEmpresa);
         formData.append("metodoDeEntrega", values.metodoDeEntrega);
