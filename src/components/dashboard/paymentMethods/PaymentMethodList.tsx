@@ -118,12 +118,7 @@ export default function PaymentMethodList() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Métodos de Pago</h1>
-        <Button asChild className="flex items-center gap-2">
-          <Link to="/dashboard/metodos-pago/crear">
-            <Plus size={16} />
-            <span>Nuevo Método</span>
-          </Link>
-        </Button>
+        
       </div>
 
       <div className="flex justify-between items-center mb-6">
@@ -137,6 +132,13 @@ export default function PaymentMethodList() {
             }}
           />
         </div>
+
+        <Button asChild className="flex items-center gap-2">
+          <Link to="/dashboard/metodos-pago/crear">
+            <Plus size={16} />
+            <span>Nuevo Método</span>
+          </Link>
+        </Button>
       </div>
 
       <Card>

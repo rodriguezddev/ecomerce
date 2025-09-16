@@ -206,8 +206,11 @@ const filteredPayments = payments?.filter((payment: any) => {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Pagos</h1>
-        <div className="grid gap-2 md:grid-cols-2 grid-cols-1 relative">
-          <div className="relative w-48">
+        
+      </div>
+      <div className="flex justify-between items-center mb-6 ">
+<div className="flex justify-between items-center gap-4 ">
+          <div className="relative w-64">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Buscar por referencia o fecha..."
@@ -223,7 +226,7 @@ const filteredPayments = payments?.filter((payment: any) => {
             setPaymentFilter(value);
             setCurrentPage(1); // Reset to first page when changing filter
           }}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-64">
               <SelectValue placeholder="Filtrar por método" />
             </SelectTrigger>
             <SelectContent>
@@ -236,6 +239,7 @@ const filteredPayments = payments?.filter((payment: any) => {
           </Select>
         </div>
       </div>
+      
       <Card>
         <CardContent>
           {filteredPayments.length === 0 ? (

@@ -278,16 +278,12 @@ export default function OrderList() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Pedidos</h1>
-        <Button asChild>
-          <Link to="/dashboard/pedidos/nuevo">
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo Pedido
-          </Link>
-        </Button>
+        
       </div>
 
-      <div className="flex justify-start items-center gap-4 mb-4">
-        <div className="relative w-64">
+      <div className="flex justify-between items-center gap-4 mb-4">
+        <div className="flex justify-start items-center gap-4 mb-4">
+ <div className="relative w-64">
           <Input
             placeholder="Buscar pedidos..."
             value={searchTerm}
@@ -340,6 +336,15 @@ export default function OrderList() {
             </Button>
           )}
         </div>
+        </div>
+       
+
+        <Button asChild>
+          <Link to="/dashboard/pedidos/nuevo">
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Pedido
+          </Link>
+        </Button>
       </div>
 
       <Card>

@@ -183,16 +183,13 @@ export default function ShipmentList() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Envíos</h1>
-        <Button asChild>
-          <Link to="/dashboard/envios/nuevo">
-            <Plus className="mr-2 h-4 w-4" />
-            Nuevo Envío
-          </Link>
-        </Button>
+        
       </div>
 
       <div className="flex justify-between items-center mb-6 gap-4 flex-wrap">
-        <div className="relative w-64">
+
+        <div className="flex justify-between items-center mb-6 gap-4 flex-wrap">
+<div className="relative w-64">
           <Input
             placeholder="Buscar envíos..."
             value={searchTerm}
@@ -258,6 +255,15 @@ export default function ShipmentList() {
             </PopoverContent>
           </Popover>
         </div>
+        </div>
+        
+
+        <Button asChild>
+          <Link to="/dashboard/envios/nuevo">
+            <Plus className="mr-2 h-4 w-4" />
+            Nuevo Envío
+          </Link>
+        </Button>
       </div>
 
       <Card>

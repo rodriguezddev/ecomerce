@@ -204,13 +204,7 @@ export default function ShippingCompanies() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Empresas de Envío</h1>
-        <Button
-          onClick={() => handleOpenDialog()}
-          className="flex items-center gap-2"
-        >
-          <Plus size={16} />
-          <span>Nueva Empresa</span>
-        </Button>
+        
       </div>
 
       <div className="flex justify-between items-center mb-6">
@@ -224,6 +218,14 @@ export default function ShippingCompanies() {
             }}
           />
         </div>
+
+        <Button
+          onClick={() => handleOpenDialog()}
+          className="flex items-center gap-2"
+        >
+          <Plus size={16} />
+          <span>Nueva Empresa</span>
+        </Button>
       </div>
 
       <Card>
