@@ -32,6 +32,7 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Calendar,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -43,6 +44,17 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { orderService } from "@/services/api";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+
+// Función para formatear fecha sin hora
+const formatDateWithoutTime = (date: Date): string => {
+  return date.toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit'
+  });
+};
 
 export default function InvoiceList() {
   const { toast } = useToast();
@@ -51,6 +63,7 @@ export default function InvoiceList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
+  const [dateFilter, setDateFilter] = useState<Date | undefined>(undefined);
 
   const {
     data: invoices = [],
@@ -73,23 +86,37 @@ export default function InvoiceList() {
     },
   });
 
-  // Filter invoices based on search term
-const filteredInvoices = orders.filter((invoice: any) => {
-  // Buscar el pedido asociado (asumiendo que 'orders' es el array de pedidos)
-  const orderAssociated = orders.find(order => order?.factura?.id === invoice?.id);
-  
-  // Excluir facturas de pedidos cancelados
-  if (orderAssociated && orderAssociated.estado === "Cancelado") {
-    return false;
-  }
-  
-  // Aplicar filtro de búsqueda
-  return invoice.factura &&
-    (invoice.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     invoice.id?.toString().includes(searchTerm) ||
-     invoice.pedido?.id?.toString().includes(searchTerm) ||
-     invoice.pago?.id?.toString().includes(searchTerm));
-});
+  // Filter invoices based on search term and date filter
+  const filteredInvoices = orders.filter((invoice: any) => {
+    // Buscar el pedido asociado (asumiendo que 'orders' es el array de pedidos)
+    const orderAssociated = orders.find(order => order?.factura?.id === invoice?.id);
+    
+    // Excluir facturas de pedidos cancelados
+    if (orderAssociated && orderAssociated.estado === "Cancelado") {
+      return false;
+    }
+    
+    // Filter by date
+    if (dateFilter && invoice.fecha) {
+      const invoiceDate = new Date(invoice.fecha);
+      const filterDate = new Date(dateFilter);
+      
+      if (
+        invoiceDate.getDate() !== filterDate.getDate() ||
+        invoiceDate.getMonth() !== filterDate.getMonth() ||
+        invoiceDate.getFullYear() !== filterDate.getFullYear()
+      ) {
+        return false;
+      }
+    }
+    
+    // Aplicar filtro de búsqueda
+    return invoice.factura &&
+      (invoice.descripcion?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+       invoice.id?.toString().includes(searchTerm) ||
+       invoice.pedido?.id?.toString().includes(searchTerm) ||
+       invoice.pago?.id?.toString().includes(searchTerm));
+  });
 
   // Pagination logic
   const totalItems = filteredInvoices.length;
@@ -139,6 +166,11 @@ const filteredInvoices = orders.filter((invoice: any) => {
     setCurrentPage(1); // Reset to first page when changing items per page
   };
 
+  const clearDateFilter = () => {
+    setDateFilter(undefined);
+    setCurrentPage(1);
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -170,7 +202,7 @@ const filteredInvoices = orders.filter((invoice: any) => {
         </Button> */}
       </div>
 
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-6 gap-4 flex-wrap">
         <div className="relative w-64">
           <Input
             placeholder="Buscar recibos..."
@@ -181,6 +213,41 @@ const filteredInvoices = orders.filter((invoice: any) => {
             }}
           />
         </div>
+        
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="outline"
+              className="w-48 justify-start text-left font-normal"
+            >
+              <Calendar className="mr-2 h-4 w-4" />
+              {dateFilter ? formatDateWithoutTime(dateFilter) : "Filtrar por fecha"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <CalendarComponent
+              mode="single"
+              selected={dateFilter}
+              onSelect={(date) => {
+                setDateFilter(date);
+                setCurrentPage(1);
+              }}
+              initialFocus
+            />
+            {dateFilter && (
+              <div className="p-3 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={clearDateFilter}
+                >
+                  Limpiar filtro de fecha
+                </Button>
+              </div>
+            )}
+          </PopoverContent>
+        </Popover>
       </div>
 
       <Card>

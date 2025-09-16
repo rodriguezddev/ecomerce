@@ -104,6 +104,7 @@ export default function OrderFormFields({
                       En proceso de empaquetado
                     </SelectItem>
                     <SelectItem value="Pedido enviado">Enviado</SelectItem>
+                    <SelectItem value="Disponible para entrega">Disponible para entrega</SelectItem>
                     <SelectItem value="Cancelado">Cancelado</SelectItem>
                   </SelectContent>
                 </Select>
