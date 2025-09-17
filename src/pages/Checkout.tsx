@@ -797,7 +797,7 @@ const Checkout = () => {
 <Card >
               <CardHeader>
                 <CardTitle>Resumen del Pedido</CardTitle>
-                <p className="text-sm">Para una mejor experiencia, le sugerimos revisar su selección antes de finalizar la compra, ya que los artículos no son elegibles para devolución una vez adquiridos.</p>
+                <p className="text-sm">Para una mejor experiencia, sugerimos verificar la selección de los artículos y la información ingresada antes de confirmar el pedido.</p>
                 <CardDescription>
                   {cart.length} {cart.length === 1 ? "artículo" : "artículos"}
                 </CardDescription>
@@ -858,7 +858,7 @@ const Checkout = () => {
                 </div>
               </CardFooter>
             </Card>
-                            <p className="text-sm m-3 text-[#e52727]">Para una mejor experiencia, le sugerimos revisar su selección antes de finalizar la compra, ya que los artículos no son elegibles para devolución una vez adquiridos.</p>
+                            <p className="text-sm m-3 text-[#e52727]">Para mayor información, puede contactar a soporte M&C7, C.A a través del número (0424) 571 50 37</p>
 
             </div>
             

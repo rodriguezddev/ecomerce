@@ -46,6 +46,7 @@ import { Input } from "@/components/ui/input";
 import { orderService } from "@/services/api";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { cn } from '../../../lib/utils';
 
 // Función para formatear fecha sin hora
 const formatDateWithoutTime = (date: Date): string => {
@@ -202,7 +203,7 @@ export default function InvoiceList() {
         </Button> */}
       </div>
 
-      <div className="flex justify-between items-center mb-6 gap-4 flex-wrap">
+      <div className="flex justify-start items-center mb-6 gap-4 flex-wrap">
         <div className="relative w-64">
           <Input
             placeholder="Buscar recibos..."
@@ -217,8 +218,11 @@ export default function InvoiceList() {
         <Popover>
           <PopoverTrigger asChild>
             <Button
-              variant="outline"
-              className="w-48 justify-start text-left font-normal"
+              variant={"cancel"}
+                              className={cn(
+                                "w-[240px] justify-start text-left font-normal",
+                                !dateFilter && "text-muted-foreground"
+                              )}
             >
               <Calendar className="mr-2 h-4 w-4" />
               {dateFilter ? formatDateWithoutTime(dateFilter) : "Filtrar por fecha"}
