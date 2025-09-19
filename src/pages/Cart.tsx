@@ -109,11 +109,13 @@ const Cart = () => {
                             </div>
                           </td>
                           <td className="px-4 lg:px-6 py-4 text-right text-sm text-gray-500">
-                            {item.descuento 
-                              ? `$${(item.price - (item.price * (item.descuento / 100))).toFixed(2)}`
-                              : `$${item.price.toFixed(2)}`
-                            }
-                          </td>
+  {item.descuento 
+    ? `$${(item.price - (item.price * (item.descuento / 100))).toFixed(2)}`
+    : (item.categoriaDescuento && item.aplicarDescuentoCategoria) 
+      ? `$${(item.price - (item.price * (item.categoriaDescuento / 100))).toFixed(2)}`
+      : `$${item.price.toFixed(2)}`
+  }
+</td>
                           <td className="px-4 lg:px-6 py-4">
                             <div className="flex justify-center">
                               <div className="flex items-center border border-gray-300 rounded-md">
@@ -138,14 +140,15 @@ const Cart = () => {
                               </div>
                             </div>
                           </td>
-                          <td className="px-4 lg:px-6 py-4 text-right text-sm font-medium">
-                            ${(
-                              (item.descuento 
-                                ? item.price * (1 - item.descuento / 100)
-                                : item.price
-                              ) * item.quantity
-                            ).toFixed(2)}
-                          </td>
+                         <td className="px-4 lg:px-6 py-4 text-right text-sm font-medium">
+  ${((
+    item.descuento 
+      ? item.price * (1 - item.descuento / 100)
+      : (item.categoriaDescuento && item.aplicarDescuentoCategoria)
+        ? item.price * (1 - item.categoriaDescuento / 100)
+        : item.price
+  ) * item.quantity).toFixed(2)}
+</td>
                           <td className="px-4 lg:px-6 py-4 text-right text-sm font-medium">
                             <button
                               onClick={() => removeFromCart(item.id)}

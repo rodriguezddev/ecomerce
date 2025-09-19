@@ -28,7 +28,7 @@ import { Edit, Eye, Trash2, Plus, ChevronLeft, ChevronRight, ChevronsLeft, Chevr
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { formatDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 
@@ -223,8 +223,11 @@ export default function ShipmentList() {
           <Popover>
             <PopoverTrigger asChild>
               <Button
-                variant="outline"
-                className="w-48 justify-start text-left font-normal"
+                variant={"cancel"}
+                                className={cn(
+                                  "w-[240px] justify-start text-left font-normal",
+                                  !dateFilter && "text-muted-foreground"
+                                )}
               >
                 <Calendar className="mr-2 h-4 w-4" />
                 {dateFilter ? formatDateWithoutTime(dateFilter) : "Filtrar por fecha"}

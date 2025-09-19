@@ -440,7 +440,7 @@ const OrderDetails = () => {
                 </div>
                <div className="mb-2 flex justify-between w-full text-gray-600">
                   <span className="font-bold">Total Bs</span>
-                  <span className="text-xl font-bold ">Bs {order.precioTotal.toFixed(2) * order.pagos[0].tasaBsDelDia.toFixed(2)}</span>
+                  <span className="text-xl font-bold ">Bs {(order.precioTotal * order.pagos[0]?.tasaBsDelDia).toFixed(2)}</span>
                 </div>
               </CardFooter>
             </Card>

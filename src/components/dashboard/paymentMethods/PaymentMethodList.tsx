@@ -146,11 +146,6 @@ export default function PaymentMethodList() {
           {methods.length === 0 ? (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">No hay métodos de pago registrados</p>
-              <Button asChild>
-                <Link to="/dashboard/metodos-pago/crear">
-                  Crear primer método de pago
-                </Link>
-              </Button>
             </div>
           ) : (
             <>

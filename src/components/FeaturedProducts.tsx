@@ -81,7 +81,7 @@ export const ProductCard = ({ product }) => {
         <div className="product-card__price mt-2 font-bold">
                       ${product.descuento 
   ? (product.precio - (product.precio * (product.descuento / 100))).toFixed(2)
-  : product.categoria?.descuento 
+  : (product.categoria?.descuento && product.aplicarDescuentoCategoria) 
     ? (product.precio - (product.precio * (product.categoria.descuento / 100))).toFixed(2)
     : product.precio.toFixed(2)
 }
@@ -90,17 +90,17 @@ export const ProductCard = ({ product }) => {
                         <div>
                           <span className="text-sm text-gray-500">
                              {(
-      (product.descuento 
-        ? product.precio - (product.precio * (product.descuento / 100))
-        : product.categoria?.descuento 
-          ? product.precio - (product.precio * (product.categoria.descuento / 100))
-          : product.precio
-      ) * bdvPrice
-    ).toFixed(2)} BS
+  (product.descuento 
+    ? product.precio - (product.precio * (product.descuento / 100))
+    : (product.categoria?.descuento && product.aplicarDescuentoCategoria) 
+      ? product.precio - (product.precio * (product.categoria.descuento / 100))
+      : product.precio
+  ) * bdvPrice
+).toFixed(2)} BS
                           </span>
                         </div>
                       )}
-                      {product.descuento > 0 && (
+                      {(product.descuento > 0 || (product.categoria?.descuento > 0 && product.aplicarDescuentoCategoria)) && (
                         <span className="text-gray-500 text-sm line-through ml-2">
                           $
                           {product.precio.toFixed(2)}
@@ -208,7 +208,7 @@ const FeaturedProducts = () => {
               ))
             ) : (
               <div className="col-span-4 text-center py-10">
-                <p>No products available in this category.</p>
+                <p>No hay productos disponibles en esta categoría..</p>
               </div>
             )}
           </div>

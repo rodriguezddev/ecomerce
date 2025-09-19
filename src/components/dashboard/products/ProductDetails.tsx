@@ -299,7 +299,7 @@ export default function ProductDetails() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t">
                       <div>
                         <p className="text-sm text-muted-foreground mb-2">Disponibilidad</p>
-                        {product.disponible ? (
+                        {product.stock > 0 ? (
                           <Badge className="bg-green-500 hover:bg-green-600">Disponible</Badge>
                         ) : (
                           <Badge variant="destructive">No Disponible</Badge>

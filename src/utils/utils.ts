@@ -40,8 +40,18 @@ export const getChangedFields = (currentValues: OrderFormValues, initialValues: 
 export const calculateProductPrice = (product: any) => {
   if (!product || !product.precio) return 0;
   
-  const descuento = product.descuento || product.categoria?.descuento || 0;
-  return product.precio - (product.precio * (descuento / 100));
+  // Aplicar descuento directo del producto (tiene prioridad)
+  if (product.descuento) {
+    return product.precio - (product.precio * (product.descuento / 100));
+  }
+  
+  // Aplicar descuento de categoría solo si aplicarDescuentoCategoria es true
+  if (product.categoria?.descuento && product.aplicarDescuentoCategoria) {
+    return product.precio - (product.precio * (product.categoria.descuento / 100));
+  }
+  
+  // Sin descuentos aplicables
+  return product.precio;
 };
 
 export const calculateTotal = (selectedProducts: any[]) => {

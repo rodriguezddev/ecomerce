@@ -241,8 +241,8 @@ export default function ProductList() {
                     const precioConDescuento = calcularPrecioConDescuento(product);
                     const precioBs = bdvPrice ? precioConDescuento * bdvPrice : 0;
                     const precioOriginalBs = bdvPrice ? (product.precio || 0) * bdvPrice : 0;
-                    const tieneDescuento = product.descuento || product.categoria?.descuento;
-                    const porcentajeDescuento = product.descuento || product.categoria?.descuento;
+                    const tieneDescuento = product.descuento || (product.categoria?.descuento && product.aplicarDescuentoCategoria);
+                    const porcentajeDescuento = product.descuento || (product.categoria?.descuento && product.aplicarDescuentoCategoria ? product.categoria?.descuento : 0);
                     const stockBajo = (product.stock || 0) < 3;
 
                     return (

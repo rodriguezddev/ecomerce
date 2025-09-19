@@ -63,6 +63,7 @@ export default function ProductCreate() {
   const navigate = useNavigate();
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null); // ✅ Estado para error de imagen
 
   // Fetch categories for the select dropdown
   const { data: categories, isLoading: categoriesLoading } = useQuery({
@@ -91,6 +92,7 @@ export default function ProductCreate() {
     if (!file) return;
 
     setImageFile(file);
+    setImageError(null); // ✅ Limpiar error al seleccionar imagen
 
     // Crear preview
     const reader = new FileReader();
@@ -102,6 +104,17 @@ export default function ProductCreate() {
 
   const onSubmit = async (values: ProductFormValues) => {
     try {
+      // ✅ VALIDACIÓN DE IMAGEN AGREGADA
+      if (!imageFile) {
+        setImageError("La imagen es requerida");
+        toast({
+          title: "Error de validación",
+          description: "La imagen del producto es requerida.",
+          variant: "destructive",
+        });
+        return;
+      }
+
       const formData = new FormData();
       formData.append("nombre", values.nombre);
       formData.append("descripcion", values.descripcion);
@@ -109,7 +122,7 @@ export default function ProductCreate() {
       formData.append("stock", values.stock.toString());
       formData.append("descuento", values.descuento.toString());
       formData.append("disponible", values.disponible.toString());
-      formData.append("aplicarDescuentoCategoria", values.aplicarDescuentoCategoria.toString());
+      formData.append("aplicarDescuentoCategoria", values.aplicarDescuentoCategoria ? values.aplicarDescuentoCategoria.toString() : "");
       formData.append("categoriaId", values.categoriaId.toString());
       
       if (imageFile) {
@@ -338,6 +351,12 @@ export default function ProductCreate() {
                     onChange={handleImageChange}
                     className="mb-2"
                   />
+                  {/* ✅ MOSTRAR ERROR DE IMAGEN AGREGADO */}
+                  {imageError && (
+                    <p className="text-sm font-medium text-destructive">
+                      {imageError}
+                    </p>
+                  )}
                   {imagePreview && (
                     <div className="mt-2">
                       <p className="text-sm mb-1">Vista previa:</p>

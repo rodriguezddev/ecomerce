@@ -172,27 +172,34 @@ const ProductDetails = () => {
             {/* Product price */}
             <div className="mb-6">
               <div>
-                <span className="text-3xl font-bold text-primary"> ${product.descuento 
-  ? (product.precio - (product.precio * (product.descuento / 100))).toFixed(2)
-  : product.categoria?.descuento 
-    ? (product.precio - (product.precio * (product.categoria.descuento / 100))).toFixed(2)
-    : product.precio.toFixed(2)}</span>
-                <div>
-                  {bdvPrice !== null && (
-  <span className="text-sm text-gray-500">
-    {(
-      (product.descuento 
-        ? product.precio - (product.precio * (product.descuento / 100))
-        : product.categoria?.descuento 
-          ? product.precio - (product.precio * (product.categoria.descuento / 100))
-          : product.precio
-      ) * bdvPrice
-    ).toFixed(2)} BS
+  <span className="text-3xl font-bold text-primary">
+    ${(() => {
+      if (product.descuento) {
+        return (product.precio * (1 - product.descuento / 100)).toFixed(2);
+      } 
+      else if (product.categoria?.descuento && product.aplicarDescuentoCategoria === true) {
+        return (product.precio * (1 - product.categoria.descuento / 100)).toFixed(2);
+      }
+      return product.precio.toFixed(2);
+    })()}
   </span>
-)}
-                </div>
-                
-              </div>
+  
+  <div>
+    {bdvPrice !== null && (
+      <span className="text-sm text-gray-500">
+        {(() => {
+          if (product.descuento) {
+            return product.precio * (1 - product.descuento / 100) * bdvPrice;
+          } 
+          else if (product.categoria?.descuento && product.aplicarDescuentoCategoria === true) {
+            return product.precio * (1 - product.categoria.descuento / 100) * bdvPrice;
+          }
+          return product.precio * bdvPrice;
+        })().toFixed(2)} BS
+      </span>
+    )}
+  </div>
+</div>
               
               {product.descuento > 0 && (
                 <div>

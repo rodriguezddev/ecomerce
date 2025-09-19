@@ -123,7 +123,7 @@ export default function OrderDetails() {
               </Link>
             </Button>
           )}
-          {
+          {/* {
             (order?.estado !== "Cancelado" && order?.pagos?.length == 0) && (
               <Button variant="secondary" asChild>
                 <Link to={`/dashboard/pagos/nuevo/${order.id}`}>
@@ -131,9 +131,9 @@ export default function OrderDetails() {
                 </Link>
               </Button>
             )
-          }
+          } */}
           {
-            (order.estado !== "Pedido enviado" && order.estado !== "Cancelado" ) && (
+            (order.estado !== "Pedido enviado" && order.estado !== "Cancelado" && order.pagado !== true ) && (
           <Button asChild>
             <Link to={`/dashboard/pedidos/editar/${order.id}`}>
               <Edit className="mr-2 h-4 w-4" /> Actualizar Estatus
@@ -267,6 +267,7 @@ export default function OrderDetails() {
                 <span>Total del Pedido:</span>
                 <span>${total.toFixed(2)}</span>
               </div>
+
             </CardFooter>
           </Card>
         </div>

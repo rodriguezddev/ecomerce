@@ -33,9 +33,6 @@ const Index = () => {
         <div className="container mx-auto px-4 py-8">
           <Services />
           <FeaturedCategories />
-          
-          
-          
           <FeaturedProducts />
           <SpecialOffers />
           <BrandsSlider />

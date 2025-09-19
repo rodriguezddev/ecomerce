@@ -73,14 +73,13 @@ const ReporteVentasCategoria: React.FC<ReporteVentasCategoriaProps> = ({
       if (productoEnCategoria) {
         return {
           id: categoria.id,
-          nombre: categoria.nombre
+          nombre: categoria.nombre,
+          descuento: categoria.descuento || 0
         };
       }
     }
     return null;
   };
-
-
 
   // Procesar datos para obtener ventas por categoría con filtro por fecha
   const procesarDatosCategorias = useMemo(() => {
@@ -109,7 +108,6 @@ const ReporteVentasCategoria: React.FC<ReporteVentasCategoriaProps> = ({
 
     // Crear un mapa para acumular ventas por categoría
     const ventasPorCategoria = new Map();
-    console.log(ordenesValidas, orders)
     
     // Inicializar el mapa con todas las categorías disponibles (incluyendo las que no tienen ventas)
     categories.forEach((category: any) => {
@@ -121,14 +119,6 @@ const ReporteVentasCategoria: React.FC<ReporteVentasCategoriaProps> = ({
       });
     });
     
-    // Agregar también una categoría para productos sin categoría
-    // ventasPorCategoria.set(0, {
-    //   id: 0,
-    //   nombre: 'Sin categoría',
-    //   totalGenerado: 0,
-    //   unidadesVendidas: 0
-    // });
-
     let totalIngresos = 0;
     let totalUnidades = 0;
 
@@ -137,12 +127,17 @@ const ReporteVentasCategoria: React.FC<ReporteVentasCategoriaProps> = ({
       order.items.forEach((item: any) => {
         // Buscar la categoría del producto usando su ID
         const categoriaInfo = encontrarCategoriaPorProductoId(item.producto.id);
-        console.log(categoriaInfo, item, order)
         const categoriaId = categoriaInfo?.id || 0;
         const categoriaNombre = categoriaInfo?.nombre || 'Sin categoría';
+        const descuento = categoriaInfo?.descuento || 0;
         
-        // Calcular el subtotal del item (cantidad * precio)
-        const subtotal = item.cantidad * item.producto.precio;
+        // ✅ CALCULAR PRECIO CON DESCUENTO (producto o categoría)
+        const precioUnitario = item.producto.descuento > 0
+          ? item.producto.precio - (item.producto.precio * item.producto.descuento / 100)
+          : (descuento > 0 && item.producto.aplicarDescuentoCategoria)
+            ? item.producto.precio - (item.producto.precio * descuento / 100)
+            : item.producto.precio;
+        const subtotal = item.cantidad * precioUnitario;
         
         // Si la categoría no existe en el mapa, crearla
         if (!ventasPorCategoria.has(categoriaId)) {

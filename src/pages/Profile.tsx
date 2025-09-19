@@ -383,7 +383,7 @@ const Profile = () => {
                     </div>
                       </div>
                     ) : (
-                      <p className="text-muted-foreground">No tienes un perfil asociado.</p>
+                      <p className="text-muted-foreground text-center">Cargando datos...</p>
                     )}
                   </CardContent>
                 </Card>

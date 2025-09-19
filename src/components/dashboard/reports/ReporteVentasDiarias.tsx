@@ -145,17 +145,30 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
     let total_efectivo_dolares = 0;
     
     const ventasProcesadas = ventasValidas.map((order: any) => {
-      // Extraer información de pagos
-      const pagoMovil = order.pagos.find((p: any) => p.nombreFormaDePago === 'PAGOMOVIL');
-      const transferencia = order.pagos.find((p: any) => p.nombreFormaDePago === 'TRANSFERENCIA');
-      const zelle = order.pagos.find((p: any) => p.nombreFormaDePago === 'ZELLE');
-      const efectivo = order.pagos.find((p: any) => p.nombreFormaDePago === 'EFECTIVO');
-      
-      // Calcular montos
-      const montoDolares = order.pagos.reduce((sum: number, p: any) => {
-        return sum + p.monto }, 0);
-      const montoBs = order.pagos.reduce((sum: number, p: any) => {
-        return sum + p.monto }, 0) * (bdvPrice || 1);
+// Extraer información de pagos
+const pagoMovil = order?.pagos.find((p: any) => p.nombreFormaDePago === 'PAGOMOVIL');
+const transferencia = order?.pagos.find((p: any) => p.nombreFormaDePago === 'TRANSFERENCIA');
+const zelle = order?.pagos.find((p: any) => p.nombreFormaDePago === 'ZELLE');
+const efectivo = order?.pagos.find((p: any) => p.nombreFormaDePago === 'EFECTIVO');
+
+// Calcular montos
+const montoDolares = order?.pagos.reduce((sum: number, p: any) => {
+  // Solo sumar ZELLE y EFECTIVO (dólares)
+  if (p.nombreFormaDePago === 'ZELLE' || p.nombreFormaDePago === 'EFECTIVO') {
+    return sum + p.monto;
+  }
+  return sum;
+}, 0);
+
+const montoBs = order?.pagos.reduce((sum: number, p: any) => {
+  // Solo sumar PAGOMOVIL y TRANSFERENCIA (bolívares)
+  if (p.nombreFormaDePago === 'PAGOMOVIL' || p.nombreFormaDePago === 'TRANSFERENCIA') {
+    console.log(sum)
+    return sum + p.monto;
+  }
+  return sum;
+}, 0);
+
       
       const pagoMovilMonto = pagoMovil ? pagoMovil.monto : 0;
       const transferenciaMonto = transferencia ? transferencia.monto : 0;
@@ -178,9 +191,9 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
       total_efectivo_dolares += efectivoUsd;
       
       return {
-        fecha_de_recibo: new Date(order.fecha).toLocaleDateString('es-ES'),
-        numero_de_recibo: order.factura ? `Recibo ${order.id}` : `Sin factura ${order.id}`,
-        comprador_nombre: `${order.perfil.nombre} ${order.perfil.apellido}`,
+        fecha_de_recibo: new Date(order?.fecha).toLocaleDateString('es-ES'),
+        numero_de_recibo: order?.factura ? `Recibo ${order.id}` : `Sin factura ${order?.id}`,
+        comprador_nombre: `${order?.perfil?.nombre} ${order?.perfil?.apellido}`,
         MONTO: montoDolares.toFixed(2),
         MONTOBS: montoBs.toFixed(2),
         PAGOMOVIL: pagoMovilMonto.toFixed(2),
@@ -188,7 +201,7 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
         ZELLE: zelleMonto.toFixed(2),
         EFECTIVOBS: efectivoBs.toFixed(2),
         EFECTIVO: efectivoUsd.toFixed(2),
-        vendedor_username: order.vendedor.username,
+        vendedor_username: order?.vendedor?.username,
       };
     });
     
@@ -364,7 +377,7 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
               }}
             >
               <h3 style={{ fontSize: '8px', margin: '0 0 2px 0', fontWeight: 'bold' }}>TOTAL USD</h3>
-              <div className="summary-value" style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0' }}>${subtotalesCalculados.total_monto_dolares.toFixed(2)}</div>
+              <div className="summary-value" style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0' }}>$ {((subtotalesCalculados.total_monto_bs + subtotalesCalculados.total_monto_dolares * bdvPrice) / bdvPrice).toFixed(2)}</div>
             </div>
             
             <div 
@@ -378,7 +391,7 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
               }}
             >
               <h3 style={{ fontSize: '8px', margin: '0 0 2px 0', fontWeight: 'bold' }}>TOTAL BS</h3>
-              <div className="summary-value" style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0' }}>Bs. {subtotalesCalculados.total_monto_bs.toFixed(2)}</div>
+              <div className="summary-value" style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0' }}>Bs. {((subtotalesCalculados.total_monto_bs + subtotalesCalculados.total_monto_dolares * bdvPrice)).toFixed(2)}</div>
             </div>
           </div>
         </div>

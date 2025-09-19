@@ -70,21 +70,25 @@ export default function ProductSelector({
                     </FormControl>
                     <SelectContent>
                       {products.map((product) => (
-                        product.stock > 0 && (
-                          <SelectItem key={product.id} value={product.id.toString()}>
-  {product.nombre} - $
-  {(() => {
-    let finalPrice = product.precio;
-    if (product.descuento) {
-      finalPrice = product.precio - (product.precio * (product.descuento / 100));
-    } else if (product.categoria?.descuento) {
-      finalPrice = product.precio - (product.precio * (product.categoria.descuento / 100));
-    }
-    return finalPrice.toFixed(2);
-  })()}
-</SelectItem> 
-                        )
-                      ))}
+  product.stock > 0 && (
+    <SelectItem key={product.id} value={product.id.toString()}>
+      {product.nombre} - $
+      {(() => {
+        let finalPrice = product.precio;
+        
+        if (product.descuento) {
+          finalPrice = product.precio * (1 - product.descuento / 100);
+        } 
+        // Validación estricta: solo aplica descuento de categoría si aplicarDescuentoCategoria es explícitamente true
+        else if (product.categoria?.descuento && product.aplicarDescuentoCategoria === true) {
+          finalPrice = product.precio * (1 - product.categoria.descuento / 100);
+        }
+        
+        return finalPrice.toFixed(2);
+      })()}
+    </SelectItem> 
+  )
+))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -123,10 +127,21 @@ export default function ProductSelector({
               <FormLabel>Subtotal</FormLabel>
               <div className="h-10 flex items-center">
   ${(
-    (selectedProducts[index].precio - 
-     (selectedProducts[index].precio * 
-      ((selectedProducts[index].descuento || selectedProducts[index].categoria?.descuento || 0) / 100))) * 
-    (selectedProducts[index]?.cantidad || 0)
+    (() => {
+      const product = selectedProducts[index];
+      let precioConDescuento = product.precio;
+      
+      // Aplicar descuento directo del producto
+      if (product.descuento) {
+        precioConDescuento = product.precio - (product.precio * (product.descuento / 100));
+      } 
+      // Aplicar descuento de categoría solo si aplicarDescuentoCategoria es true
+      else if (product.categoria?.descuento && product.aplicarDescuentoCategoria) {
+        precioConDescuento = product.precio - (product.precio * (product.categoria.descuento / 100));
+      }
+      
+      return (precioConDescuento * (product?.cantidad || 0));
+    })()
   ).toFixed(2)}
 </div>
             </div>

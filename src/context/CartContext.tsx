@@ -11,6 +11,7 @@ export interface CartItem {
   descuento: number;
   stock: number; // ← Añadir stock al interface CartItem
   categoriaDescuento: number;
+  aplicarDescuentoCategoria: boolean;
 }
 
 interface CartContextType {
@@ -26,6 +27,7 @@ interface CartContextType {
   products: Product[];
   loading: boolean;
   error: string | null;
+  
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -106,7 +108,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
         descuento: product.descuento,
         stock: product.stock, // ← Añadir stock al item del carrito
         quantity: quantity,
-        categoriaDescuento: product.categoria?.descuento || 0
+        categoriaDescuento: product.aplicarDescuentoCategoria ? product.categoria?.descuento : 0,
+        aplicarDescuentoCategoria: product.aplicarDescuentoCategoria
       }]);
       toast({
         title: "Agregado al carrito",

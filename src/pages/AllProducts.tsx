@@ -294,32 +294,38 @@ const AllProducts = () => {
                     </Link>
                     
                     <div className="product-card__price mt-2 font-bold">
-                     ${product.descuento 
-  ? (product.precio - (product.precio * (product.descuento / 100))).toFixed(2)
-  : product.categoria?.descuento 
-    ? (product.precio - (product.precio * (product.categoria.descuento / 100))).toFixed(2)
-    : product.precio.toFixed(2)}
-                      {bdvPrice !== null && (
-                        <div>
-                          <span className="text-sm text-gray-500">
-                             {(
-      (product.descuento 
-        ? product.precio - (product.precio * (product.descuento / 100))
-        : product.categoria?.descuento 
-          ? product.precio - (product.precio * (product.categoria.descuento / 100))
-          : product.precio
-      ) * bdvPrice
-    ).toFixed(2)} BS
-                          </span>
-                        </div>
-                      )}
-                      {product.descuento > 0 && (
-                        <span className="text-gray-500 text-sm line-through ml-2">
-                          $
-                          {product.precio.toFixed(2)}
-                        </span>
-                      )}
-                    </div>
+  ${(() => {
+    if (product.descuento) {
+      return (product.precio - (product.precio * (product.descuento / 100))).toFixed(2);
+    } 
+    else if (product.categoria?.descuento && product.aplicarDescuentoCategoria) {
+      return (product.precio - (product.precio * (product.categoria.descuento / 100))).toFixed(2);
+    }
+    return product.precio.toFixed(2);
+  })()}
+  
+  {bdvPrice !== null && (
+    <div>
+      <span className="text-sm text-gray-500">
+        {(() => {
+          if (product.descuento) {
+            return (product.precio - (product.precio * (product.descuento / 100))) * bdvPrice;
+          } 
+          else if (product.categoria?.descuento && product.aplicarDescuentoCategoria) {
+            return (product.precio - (product.precio * (product.categoria.descuento / 100))) * bdvPrice;
+          }
+          return product.precio * bdvPrice;
+        })().toFixed(2)} BS
+      </span>
+    </div>
+  )}
+  
+  {(product.descuento > 0 || (product.categoria?.descuento && product.aplicarDescuentoCategoria)) && (
+    <span className="text-gray-500 text-sm line-through ml-2">
+      ${product.precio.toFixed(2)}
+    </span>
+  )}
+</div>
                     <div className="product-card__actions flex justify-between items-center mt-4">
                       <Button
                         variant="outline"
