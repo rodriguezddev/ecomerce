@@ -130,13 +130,14 @@ export default function ProductSelector({
     (() => {
       const product = selectedProducts[index];
       let precioConDescuento = product.precio;
+      console.log(product)
       
       // Aplicar descuento directo del producto
-      if (product.descuento) {
+      if (product.descuento > 0) {
         precioConDescuento = product.precio - (product.precio * (product.descuento / 100));
       } 
       // Aplicar descuento de categoría solo si aplicarDescuentoCategoria es true
-      else if (product.categoria?.descuento && product.aplicarDescuentoCategoria) {
+      else if (product.categoria?.descuento > 0 && product.aplicarDescuentoCategoria) {
         precioConDescuento = product.precio - (product.precio * (product.categoria.descuento / 100));
       }
       

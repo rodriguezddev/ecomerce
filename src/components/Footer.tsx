@@ -53,8 +53,8 @@ const Footer = () => {
             <div >
             <h5 className="text-white font-bold text-lg mb-4">Mi cuenta</h5>
             <ul className="space-y-2">
-              <li><Link to="/account" className="hover:text-primary transition-colors">Mi cuenta</Link></li>
-              <li><Link to="/order-history" className="hover:text-primary transition-colors">Historial de pedidos</Link></li>
+              <li><Link to="/perfil" className="hover:text-primary transition-colors">Mi cuenta</Link></li>
+              <li><Link to="/pedidos" className="hover:text-primary transition-colors">Historial de pedidos</Link></li>
             </ul>
           </div>
           
@@ -70,7 +70,7 @@ const Footer = () => {
         </div>
           <div className="flex space-x-3 mt-4 justify-center">
               <a href="https://www.instagram.com/repuestosmc7?igsh=cXBkazJndDJndTcz" _target="_blank" className="bg-gray-800 hover:bg-primary text-white p-2 rounded-full transition-colors">
-                <Facebook size={18} />
+                <Instagram size={18} />
               </a>
               <a href="https://api.whatsapp.com/send/?phone=584245715037&text&type=phone_number&app_absent=0" _target="_blank" className="bg-gray-800 hover:bg-primary text-white p-2 rounded-full transition-colors">
                 <MessageCircleQuestion size={18} />

@@ -117,7 +117,7 @@ export default function PaymentSection({
                   <div className="space-y-2">
                     <Label className="flex items-center gap-2">
                       <FileUp size={18} />
-                      Comprobante de Pago (Opcional)
+                      Comprobante de Pago
                     </Label>
                     <Input
                       type="file"

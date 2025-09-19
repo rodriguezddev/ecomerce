@@ -237,18 +237,42 @@ const Checkout = () => {
     }
   }, [usarDatosCliente, userEnvio]);
 
-  const handleVoucherChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-      setVoucher(file);
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setVoucherPreview(reader.result as string);
-      };
-      reader.readAsDataURL(file);
+const handleVoucherChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (e.target.files && e.target.files[0]) {
+    const file = e.target.files[0];
+    
+    // ✅ VALIDACIÓN: Verificar que sea una imagen
+    if (!file.type.startsWith('image/')) {
+      toast({
+        title: "Tipo de archivo no válido",
+        description: "Por favor seleccione solo archivos de imagen (JPG, PNG, etc.)",
+        variant: "destructive",
+      });
+      e.target.value = ''; // Limpiar el input
+      return;
     }
-  };
+
+    // ✅ VALIDACIÓN: Verificar tamaño máximo (opcional - 5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast({
+        title: "Archivo demasiado grande",
+        description: "El archivo no debe exceder los 5MB",
+        variant: "destructive",
+      });
+      e.target.value = ''; // Limpiar el input
+      return;
+    }
+
+    setVoucher(file);
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setVoucherPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  }
+};
 
   const mapPaymentMethodToBackend = (method: string) => {
     const mapping: Record<string, string> = {
@@ -760,11 +784,11 @@ const Checkout = () => {
                           <div className="space-y-2">
                             <Label className="flex items-center gap-2">
                               <FileUp size={18} />
-                              Comprobante de Pago (Opcional)
+                              Comprobante de Pago
                             </Label>
                             <Input
                               type="file"
-                              accept="image/*,.pdf"
+                              accept="image/*"
                               onChange={handleVoucherChange}
                             />
                             {voucherPreview && (

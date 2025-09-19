@@ -202,7 +202,8 @@ export default function OrderForm() {
         precio: item.producto.precio,
         cantidad: item.cantidad,
         descuento: item.producto.descuento || 0,
-        categoria: item.producto.categoria || null
+        categoria: item.producto.categoria || null,
+        aplicarDescuentoCategoria: item.producto.aplicarDescuentoCategoria
       }));
 
       const initialData = {
@@ -248,6 +249,7 @@ export default function OrderForm() {
       precio: products[0]?.precio || 0,
       descuento: products[0]?.descuento || 0,
       categoria: products[0].categoria || null,
+      aplicarDescuentoCategoria: products[0]?.aplicarDescuentoCategoria || false,
       cantidad: 1
     }]);
   };
@@ -296,6 +298,7 @@ export default function OrderForm() {
         precio: product.precio,
         descuento: product?.descuento || 0,
         categoria: product.categoria || null,
+        aplicarDescuentoCategoria: product?.aplicarDescuentoCategoria,
       };
       setSelectedProducts(newSelectedProducts);
     }

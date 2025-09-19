@@ -67,7 +67,7 @@ export const ProductCard = ({ product }) => {
           </Badge>
         )}
 
-         {product.categoria.descuento > 0 && (
+         {(product.categoria.descuento > 0 && product.aplicarDescuentoCategoria) && (
           <Badge className="absolute top-3 left-3 bg-primary">
             {`-${product.categoria.descuento}%`}
           </Badge>
