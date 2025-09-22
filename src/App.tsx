@@ -119,6 +119,7 @@ function App() {
                   <Route path="metodos-pago/:id" element={<PaymentMethodDetail />} />
                   <Route path="metodos-pago/editar/:id" element={<PaymentMethodDetail />} />
                   <Route path="pagos" element={<PaymentList />} />
+                  <Route path="pagos/:referencia" element={<PaymentList />} />
                   <Route path="pagos/nuevo" element={<PaymentForm />} /> 
                   <Route path="pagos/nuevo/:orderId" element={<PaymentForm />} />
                   <Route path="pagos/editar/:id" element={<PaymentForm />} />

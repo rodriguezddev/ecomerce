@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { paymentService } from "@/services/api-extensions";
 import { Button } from "@/components/ui/button";
@@ -48,8 +48,9 @@ const paymentTypes = [
 
 export default function PaymentList() {
   const { toast } = useToast();
+  const { referencia } = useParams();
   const [isDeleting, setIsDeleting] = useState<boolean>(false);
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState(referencia ? referencia : "");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<Array | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -74,6 +75,7 @@ export default function PaymentList() {
       return response || [];
     },
   }); 
+  console.log(referencia, paymentFilter)
 
   const {
     data: orders = [],
@@ -140,7 +142,7 @@ const filteredPayments = payments?.filter((payment: any) => {
   const orderAssociated = orders.find(order => order.id === payment.pedido?.id);
   
   // Excluir pagos cuyo pedido fue cancelado
-  if (orderAssociated && orderAssociated.estado === "Cancelado" || orderAssociated && orderAssociated.pagado !== true) {
+  if (orderAssociated && orderAssociated.estado === "Cancelado") {
     return false;
   }
   

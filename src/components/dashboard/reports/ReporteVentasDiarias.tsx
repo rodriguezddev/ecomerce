@@ -115,7 +115,7 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
   const { ventasProcesadas, subtotalesCalculados } = useMemo(() => {
     // Filtrar órdenes por el rango de fechas
     const ventasValidas = orders.filter((order: any) => {
-      if (!order.factura !== null && !order.pagado) return false;
+      if (!order.pagado) return false;
       
       // Si no hay fechas de filtro, mostrar todas las órdenes
       if (!periodoInicial || !periodoFinal || periodoInicial === new Date() || periodoFinal === new Date()) {

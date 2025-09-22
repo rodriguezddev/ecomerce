@@ -134,10 +134,9 @@ export default function InvoiceDetails({isShowEditButton = true}) {
   }, [isError, error, toast]);
 
   useEffect(() => {
-    console.log(orders)
-    if (orders && orders.length !== 0) {
-      
-      const details = orders?.filter(order => order.factura?.id === Number(id));
+    if (orders && orders.length && orders.length !== 0) {
+      console.log(id, "IDDD")
+      const details = orders?.filter(order => order.factura && order.factura?.id === Number(id));
       console.log(details, "DETAILS")
       products.map((product: any) => {
         details[0].items.map((item: any) => {
@@ -281,9 +280,14 @@ export default function InvoiceDetails({isShowEditButton = true}) {
             <strong>Método de entrega:</strong> {envio.metodoDeEntrega}
           </p>
           {
-            envio.metodoDeEntrega === "Retiro en tienda" ? ( 
+            (envio.metodoDeEntrega === "Retiro en tienda" && invoiceDetails.estado === "Disponible para entregar") && ( 
               <Badge variant="default" className="px-2 py-1">Disponible para entrega</Badge>
-            ) : ( 
+            ) 
+          }
+
+          {
+            (envio.metodoDeEntrega === "Envio nacional") && (
+               ( 
               <>
                 <p className="text-sm text-muted-foreground">
                   <strong>Número de guía:</strong> {envio.numeroDeGuia}
@@ -293,17 +297,18 @@ export default function InvoiceDetails({isShowEditButton = true}) {
                 </p>
               </>
              )
-          }
-          
-          {/* <p className="text-sm text-muted-foreground">
-            <strong>Destinatario:</strong> {envio.destinatarioNombre} {envio.destinatarioApellido}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            <strong>Cédula destinatario:</strong> {envio.destinatarioCedula}
-          </p>
-          <p className="text-sm text-muted-foreground">
-            <strong>Teléfono destinatario:</strong> {envio.destinatarioTelefono}
-          </p> */}
+            )          }
+
+            {
+            (envio.metodoDeEntrega === "Delivery") && (
+               ( 
+              <>
+                <p className="text-sm text-muted-foreground">
+                  <strong>Direccion de entrega:</strong> {envio.direccionEmpresa}
+                </p>
+              </>
+             )
+            )          }
         </div>
       ))}
   </div>

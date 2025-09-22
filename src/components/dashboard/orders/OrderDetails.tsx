@@ -116,7 +116,7 @@ export default function OrderDetails() {
           }
         </div>
         <div className="flex gap-2">
-          {order?.pagado && (
+          {order?.factural !== null && (
             <Button variant="outline" asChild>
               <Link to={`/dashboard/recibo/${order?.factura?.id}`}>
                 <FileText className="mr-2 h-4 w-4" /> Ver Recibo
@@ -133,7 +133,7 @@ export default function OrderDetails() {
             )
           } */}
           {
-            (order.estado !== "Pedido enviado" && order.estado !== "Cancelado" && order.pagado !== true ) && (
+            (order.estado == "Pedido en proceso de empaquetado" || order.estado !== "Cancelado" || order.pagado !== true ) && (
           <Button asChild>
             <Link to={`/dashboard/pedidos/editar/${order.id}`}>
               <Edit className="mr-2 h-4 w-4" /> Actualizar Estatus
@@ -154,9 +154,25 @@ export default function OrderDetails() {
               <div className="flex items-center gap-3"><Hash className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">ID del Pedido</p><p className="font-medium">#{order.id}</p></div></div>
               <div className="flex items-center gap-3"><Calendar className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Fecha</p><p className="font-medium">{order?.fecha ? formatDate(new Date(order?.fecha)) : "-"}</p></div></div>
               <div className="flex items-center gap-3"><Truck className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Estado</p><OrderStatusBadge status={order?.estado ? order?.estado : "-"} /></div></div>
-              <div className="flex items-center gap-3"><CreditCard className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Pago</p><Badge variant={order?.pagado ? "default" : "outline"}>{order?.pagado ? "Pagado" : "Pendiente"}</Badge></div></div>
+              <div className="flex items-center gap-3"><CreditCard className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Pago</p><Badge variant={order?.pagado ? "default" : "outline"}>{order?.pagado ? "Pagado" : "Por verificar"}</Badge></div></div>
               <div className="flex items-center gap-3"><ShoppingBag className="h-5 w-5 text-muted-foreground" /><div><p className="text-sm text-muted-foreground">Tipo</p><p className="font-medium">{order?.tipoDePedido}</p></div></div>
-            </CardContent>
+{
+  (order.factura && order?.pagos[0]?.numeroReferencia) && (
+    <div className="flex items-center gap-3">
+  <Link 
+    to={`/dashboard/pagos/${order?.pagos[0]?.numeroReferencia || '1234567'}`}
+    className="flex items-center gap-3 hover:text-inherit text-primary transition-colors"
+  >
+    <User className="h-5 w-5 text-muted-foreground" />
+    <div>
+      <p className="text-sm text-muted-foreground">ver pago</p>
+      <p className="font-medium">{order?.pagos[0]?.numeroReferencia}</p>
+    </div>
+  </Link>
+</div> 
+  )
+}
+           </CardContent>
           </Card>
 
           <Card>

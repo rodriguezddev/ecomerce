@@ -380,10 +380,7 @@ export default function OrderForm() {
 
   const processPayment = async (orderId: number, orderValues: OrderFormValues, paymentMethod: PaymentMethod) => {
     try {
-      // Validar voucher antes de procesar el pago
-      if (!validateVoucher()) {
-        throw new Error("Comprobante de pago requerido");
-      }
+
 
       const total = calculateTotal(selectedProducts);
       const monto = paymentMethod.tipo == "PAGOMOVIL" || paymentMethod.tipo == "TRANSFERENCIA" ? (total * bdvPrice).toFixed(2) : total;
@@ -451,17 +448,6 @@ export default function OrderForm() {
       return;
     }
 
-    // Validar voucher para nuevos pedidos
-    if (!isEditing && selectedPaymentMethod && selectedPaymentMethod.tipo.toLowerCase() !== "efectivo") {
-      if (!validateVoucher()) {
-        toast({
-          title: "Error",
-          description: "El comprobante de pago es requerido",
-          variant: "destructive",
-        });
-        return;
-      }
-    }
 
     // Validar stock antes de crear o editar el pedido
     const stockValidation = await validateStock(
@@ -513,7 +499,7 @@ export default function OrderForm() {
 
         console.log(id, "factura")
          let invoice = null;
-        if (values.pagado) {
+        if (order?.factura === null && values.pagado) {
           console.log('pagado')
           invoice = await createInvoice(id);
         }
@@ -529,8 +515,8 @@ export default function OrderForm() {
         if (selectedPaymentMethod) {
           await processPayment(Number(id), values, selectedPaymentMethod);
         }
-        
-        if (order?.factura == null && values.pagado) {
+        console.log(order?.factura)
+        if (order?.factura === null && values.pagado) {
           try {
             await createInvoice(updatedOrder.id);
             toast({
