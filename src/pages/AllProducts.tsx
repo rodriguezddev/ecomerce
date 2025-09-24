@@ -279,7 +279,7 @@ const AllProducts = () => {
                       </Badge>
                     )}
 
-                     {product.categoria.descuento > 0 && (
+                     {(product.categoria?.descuento > 0 && product.aplicarDescuentoCategoria) && (
                       <Badge className="absolute top-3 left-3 bg-primary">
                         {`-${product.categoria.descuento}%`}
                       </Badge>
@@ -295,10 +295,10 @@ const AllProducts = () => {
                     
                     <div className="product-card__price mt-2 font-bold">
   ${(() => {
-    if (product.descuento) {
+    if (product.descuento > 0) {
       return (product.precio - (product.precio * (product.descuento / 100))).toFixed(2);
     } 
-    else if (product.categoria?.descuento && product.aplicarDescuentoCategoria) {
+    else if (product.categoria?.descuento > 0 && product.aplicarDescuentoCategoria) {
       return (product.precio - (product.precio * (product.categoria.descuento / 100))).toFixed(2);
     }
     return product.precio.toFixed(2);

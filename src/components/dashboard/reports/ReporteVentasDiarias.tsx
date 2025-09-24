@@ -49,13 +49,13 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
   año
 }) => {
   const [bdvPrice, setBdvPrice] = useState<number | null>(null);
-  
+
   // Obtener fecha actual formateada
   const obtenerFechaActual = () => {
     const now = new Date();
-    const options: Intl.DateTimeFormatOptions = { 
-      year: 'numeric', 
-      month: 'long', 
+    const options: Intl.DateTimeFormatOptions = {
+      year: 'numeric',
+      month: 'long',
       day: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
@@ -113,83 +113,71 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
 
   // Procesar las ventas y calcular subtotales con filtro por fecha
   const { ventasProcesadas, subtotalesCalculados } = useMemo(() => {
+    if (bdvPrice === null) {
+      return { ventasProcesadas: [], subtotalesCalculados: null };
+    }
     // Filtrar órdenes por el rango de fechas
     const ventasValidas = orders.filter((order: any) => {
       if (!order.pagado) return false;
-      
+
       // Si no hay fechas de filtro, mostrar todas las órdenes
       if (!periodoInicial || !periodoFinal || periodoInicial === new Date() || periodoFinal === new Date()) {
         return true;
       }
-      
+
       const orderDate = new Date(order.fecha);
-    const orderDateFormatted = formatDateForComparison(orderDate);
-    const startDateFormatted = formatDateForComparison(periodoInicial);
-    const endDateFormatted = formatDateForComparison(periodoFinal);
-    
-    // Si las fechas de inicio y fin son iguales, filtrar solo por ese día
-    if (startDateFormatted === endDateFormatted) {
-      return orderDateFormatted === startDateFormatted;
-    }
-    
-    // Si son fechas diferentes, usar el rango completo
-    return orderDateFormatted >= startDateFormatted && orderDateFormatted <= endDateFormatted;
+      const orderDateFormatted = formatDateForComparison(orderDate);
+      const startDateFormatted = formatDateForComparison(periodoInicial);
+      const endDateFormatted = formatDateForComparison(periodoFinal);
+
+      // Si las fechas de inicio y fin son iguales, filtrar solo por ese día
+      if (startDateFormatted === endDateFormatted) {
+        return orderDateFormatted === startDateFormatted;
+      }
+
+      // Si son fechas diferentes, usar el rango completo
+      return orderDateFormatted >= startDateFormatted && orderDateFormatted <= endDateFormatted;
     });
-    
-    let total_monto_dolares = 0;
-    let total_monto_bs = 0;
-    let total_pagomovil_bs = 0;
-    let total_transferencia_bs = 0;
-    let total_zelle_dolares = 0;
-    let total_efectivo_bs = 0;
-    let total_efectivo_dolares = 0;
-    
+
+    let total_monto_dolares_global = 0;
+    let total_monto_bs_global = 0;
+    let total_pagomovil_bs_global = 0;
+    let total_transferencia_bs_global = 0;
+    let total_zelle_dolares_global = 0;
+    let total_efectivo_dolares_global = 0;
+    let total_efectivo_bs_global = 0;
+
     const ventasProcesadas = ventasValidas.map((order: any) => {
-// Extraer información de pagos
-const pagoMovil = order?.pagos.find((p: any) => p.nombreFormaDePago === 'PAGOMOVIL');
-const transferencia = order?.pagos.find((p: any) => p.nombreFormaDePago === 'TRANSFERENCIA');
-const zelle = order?.pagos.find((p: any) => p.nombreFormaDePago === 'ZELLE');
-const efectivo = order?.pagos.find((p: any) => p.nombreFormaDePago === 'EFECTIVO');
+      // Extraer información de pagos
+      const pagoMovil = order?.pagos.find((p: any) => p.nombreFormaDePago === 'PAGOMOVIL');
+      const transferencia = order?.pagos.find((p: any) => p.nombreFormaDePago === 'TRANSFERENCIA');
+      const zelle = order?.pagos.find((p: any) => p.nombreFormaDePago === 'ZELLE');
+      const efectivo = order?.pagos.find((p: any) => p.nombreFormaDePago === 'EFECTIVO');
 
-// Calcular montos
-const montoDolares = order?.pagos.reduce((sum: number, p: any) => {
-  // Solo sumar ZELLE y EFECTIVO (dólares)
-  if (p.nombreFormaDePago === 'ZELLE' || p.nombreFormaDePago === 'EFECTIVO') {
-    return sum + p.monto;
-  }
-  return sum;
-}, 0);
-
-const montoBs = order?.pagos.reduce((sum: number, p: any) => {
-  // Solo sumar PAGOMOVIL y TRANSFERENCIA (bolívares)
-  if (p.nombreFormaDePago === 'PAGOMOVIL' || p.nombreFormaDePago === 'TRANSFERENCIA') {
-    console.log(sum)
-    return sum + p.monto;
-  }
-  return sum;
-}, 0);
-
-      
       const pagoMovilMonto = pagoMovil ? pagoMovil.monto : 0;
-      const transferenciaMonto = transferencia ? transferencia.monto : 0;
+      const transferenciaMonto = transferencia ? transferenciaMonto.monto : 0;
       const zelleMonto = zelle ? zelle.monto : 0;
       const efectivoMonto = efectivo ? efectivo.monto : 0;
-      
-      // Asumimos que PAGOMOVIL y TRANSFERENCIA son en BS, ZELLE en USD
-      // Para EFECTIVO, necesitarías un campo adicional en tus datos para determinar la moneda
-      // Por ahora, asumiremos que el efectivo está en BS
-      const efectivoBs = efectivoMonto;
-      const efectivoUsd = 0; // Si tienes forma de determinar esto, ajústalo
-      
-      // Sumar a los totales
-      total_monto_dolares += montoDolares;
-      total_monto_bs += montoBs;
-      total_pagomovil_bs += pagoMovilMonto;
-      total_transferencia_bs += transferenciaMonto;
-      total_zelle_dolares += zelleMonto;
-      total_efectivo_bs += efectivoBs;
-      total_efectivo_dolares += efectivoUsd;
-      
+
+      // Aquí asumimos que todos los pagos EFECTIVO son en dólares,
+      // y si en algún momento se paga con efectivo en Bs, se tendría que crear otra forma de pago para distinguirlos
+      const efectivoDolares = efectivoMonto;
+      const efectivoBs = 0;
+
+      // Cálculo del monto total de la venta en bolívares
+      const montoBs = (pagoMovilMonto + transferenciaMonto) + ((zelleMonto + efectivoDolares) * bdvPrice);
+      // Cálculo del monto total de la venta en dólares
+      const montoDolares = (pagoMovilMonto + transferenciaMonto) / bdvPrice + (zelleMonto + efectivoDolares);
+
+      // Sumar a los subtotales globales
+      total_monto_dolares_global += montoDolares;
+      total_monto_bs_global += montoBs;
+      total_pagomovil_bs_global += pagoMovilMonto;
+      total_transferencia_bs_global += transferenciaMonto;
+      total_zelle_dolares_global += zelleMonto;
+      total_efectivo_dolares_global += efectivoDolares;
+      total_efectivo_bs_global += efectivoBs;
+
       return {
         fecha_de_recibo: new Date(order?.fecha).toLocaleDateString('es-ES'),
         numero_de_recibo: order?.factura ? `Recibo ${order.id}` : `Sin factura ${order?.id}`,
@@ -199,48 +187,49 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
         PAGOMOVIL: pagoMovilMonto.toFixed(2),
         TRANSFERENCIA: transferenciaMonto.toFixed(2),
         ZELLE: zelleMonto.toFixed(2),
+        EFECTIVO: efectivoDolares.toFixed(2),
         EFECTIVOBS: efectivoBs.toFixed(2),
-        EFECTIVO: efectivoUsd.toFixed(2),
         vendedor_username: order?.vendedor?.username,
       };
     });
-    
+
     const subtotalesCalculados = {
-      total_monto_dolares: parseFloat(total_monto_dolares.toFixed(2)),
-      total_monto_bs: parseFloat(total_monto_bs.toFixed(2)),
-      total_pagomovil_bs: parseFloat(total_pagomovil_bs.toFixed(2)),
-      total_transferencia_bs: parseFloat(total_transferencia_bs.toFixed(2)),
-      total_zelle_dolares: parseFloat(total_zelle_dolares.toFixed(2)),
-      total_efectivo_bs: parseFloat(total_efectivo_bs.toFixed(2)),
-      total_efectivo_dolares: parseFloat(total_efectivo_dolares.toFixed(2)),
+      total_monto_dolares: parseFloat(total_monto_dolares_global.toFixed(2)),
+      total_monto_bs: parseFloat(total_monto_bs_global.toFixed(2)),
+      total_pagomovil_bs: parseFloat(total_pagomovil_bs_global.toFixed(2)),
+      total_transferencia_bs: parseFloat(total_transferencia_bs_global.toFixed(2)),
+      total_zelle_dolares: parseFloat(total_zelle_dolares_global.toFixed(2)),
+      total_efectivo_bs: parseFloat(total_efectivo_bs_global.toFixed(2)),
+      total_efectivo_dolares: parseFloat(total_efectivo_dolares_global.toFixed(2)),
     };
-    
+
     return { ventasProcesadas, subtotalesCalculados };
   }, [orders, bdvPrice, periodoInicial, periodoFinal]); // Añadimos periodoInicial y periodoFinal como dependencias
 
-  
-
-  if (isLoading) {
-    return <div>Cargando órdenes...</div>;
+  if (isLoading || bdvPrice === null) {
+    return <div>Cargando órdenes y tasa BCV...</div>;
   }
 
   if (error) {
     return <div>Error al cargar las órdenes: {error.message}</div>;
   }
 
-
+  // Si subtotalesCalculados es null, mostramos un mensaje de error o cargando
+  if (!subtotalesCalculados) {
+    return <div>Cargando totales...</div>;
+  }
 
   return (
     <div style={{ width: '100%', fontFamily: 'Arial, sans-serif' }}>
       <div className="report-container" style={{
-          // Añadir esto para impresión
-          WebkitPrintColorAdjust: 'exact',
-          colorAdjust: 'exact',
-          printColorAdjust: 'exact'
-        }}>
+        // Añadir esto para impresión
+        WebkitPrintColorAdjust: 'exact',
+        colorAdjust: 'exact',
+        printColorAdjust: 'exact'
+      }}>
 
-        <div 
-          className="header" 
+        <div
+          className="header"
           style={{
             backgroundImage: `url(${bgT})`,
             backgroundPosition: 'center',
@@ -255,18 +244,18 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
             height: '10.5rem'
           }}
         >
-          <img 
-              src={bgT}
-              alt={`Logo ${empresa}`} 
-              style={{ width: '100%', height: '10.5rem', position: 'absolute', top: '0', left: '0', zIndex: -1, }} 
-            />
+          <img
+            src={bgT}
+            alt={`Logo ${empresa}`}
+            style={{ width: '100%', height: '10.5rem', position: 'absolute', top: '0', left: '0', zIndex: -1, }}
+          />
           <div className="info">
             <h2 style={{ fontSize: '14px', margin: '0', fontWeight: 'bold' }}>Repuestos y Accesorios M&C&, C.A</h2>
             <h2 style={{ fontSize: '14px', margin: '2px 0 0 0', fontWeight: '400', color: '#f7f7f7', textAlign: 'start' }}>J-50242661-2</h2>
             <h2 style={{ fontSize: '14px', margin: '2px 0 0 0', fontWeight: '400', color: '#f7f7f7', textAlign: 'start' }}>AV. Principal de Naguagua</h2>
             <h2 style={{ fontSize: '14px', margin: '2px 0 0 0', fontWeight: '400', color: '#f7f7f7', textAlign: 'start' }}>(0424) 571 50 37</h2>
           </div>
-          <div 
+          <div
             className="logo"
             style={{
               borderRadius: '50%',
@@ -279,15 +268,15 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
 
             }}
           >
-            <img 
+            <img
               src={logoBlanco}
-              alt={`Logo ${empresa}`} 
-              style={{ width: '100px', height: '90px' }} 
+              alt={`Logo ${empresa}`}
+              style={{ width: '100px', height: '90px' }}
             />
           </div>
         </div>
-        
-        <div 
+
+        <div
           className="date-container"
           style={{
             backgroundColor: '#f2f2f2',
@@ -298,10 +287,10 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
         >
           <strong>Fecha:</strong> <span id="current-date">{formatDateToDisplay(periodoInicial)} - {formatDateToDisplay(periodoFinal)}</span>
         </div>
-        
+
         <div className="content" style={{ padding: '8px' }}>
           <h2 style={{ fontSize: '12px', margin: '0 0 6px 0', textAlign: 'center' }}>Registro de Ventas</h2>
-          
+
           <div className="table-container" style={{ width: '100%', overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '8px', fontSize: '8px' }}>
               <thead>
@@ -314,7 +303,6 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
                   <th style={{ width: '8%', backgroundColor: '#bc1823', fontWeight: 'bold', fontSize: '7px', textAlign: 'center', color: 'white', border: '1px solid transparent', padding: '2px 3px' }}>PagoMóvil. Bs</th>
                   <th style={{ width: '8%', backgroundColor: '#bc1823', fontWeight: 'bold', fontSize: '7px', textAlign: 'center', color: 'white', border: '1px solid transparent', padding: '2px 3px' }}>Transfer. Bs</th>
                   <th style={{ width: '8%', backgroundColor: '#bc1823', fontWeight: 'bold', fontSize: '7px', textAlign: 'center', color: 'white', border: '1px solid transparent', padding: '2px 3px' }}>Zelle $</th>
-                  <th style={{ width: '8%', backgroundColor: '#bc1823', fontWeight: 'bold', fontSize: '7px', textAlign: 'center', color: 'white', border: '1px solid transparent', padding: '2px 3px' }}>Efect. Bs</th>
                   <th style={{ width: '8%', backgroundColor: '#bc1823', fontWeight: 'bold', fontSize: '7px', textAlign: 'center', color: 'white', border: '1px solid transparent', padding: '2px 3px' }}>Efect. $</th>
                   <th style={{ width: '8%', backgroundColor: '#bc1823', fontWeight: 'bold', fontSize: '7px', textAlign: 'center', color: 'white', border: '1px solid transparent', padding: '2px 3px' }}>Vendedor</th>
                 </tr>
@@ -330,9 +318,8 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
                     <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{venta.PAGOMOVIL}</td>
                     <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{venta.TRANSFERENCIA}</td>
                     <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{venta.ZELLE}</td>
-                    <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{venta.EFECTIVOBS}</td>
                     <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{venta.EFECTIVO}</td>
-                    <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{venta.vendedor_username}</td>
+                    <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}>{venta.vendedor_username || "-"}</td>
                   </tr>
                 ))}
                 <tr className="subtotal" style={{ backgroundColor: 'transparent', fontWeight: 'bold', fontSize: '8px' }}>
@@ -344,15 +331,14 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
                   <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}><strong>{subtotalesCalculados.total_pagomovil_bs.toFixed(2)}</strong></td>
                   <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}><strong>{subtotalesCalculados.total_transferencia_bs.toFixed(2)}</strong></td>
                   <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}><strong>{subtotalesCalculados.total_zelle_dolares.toFixed(2)}</strong></td>
-                  <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}><strong>{subtotalesCalculados.total_efectivo_bs.toFixed(2)}</strong></td>
                   <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}><strong>{subtotalesCalculados.total_efectivo_dolares.toFixed(2)}</strong></td>
                   <td style={{ border: '1px solid transparent', padding: '2px 3px', textAlign: 'center' }}></td>
                 </tr>
               </tbody>
             </table>
           </div>
-          
-          <div 
+
+          <div
             className="summary-section"
             style={{
               display: 'flex',
@@ -365,8 +351,8 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
             <div className="summary-box">
               <strong>TASA BCV: Bs. {bdvPrice?.toFixed(2) || '0.00'}</strong>
             </div>
-            
-            <div 
+
+            <div
               className="summary-box dollars"
               style={{
                 backgroundColor: '#d4edda',
@@ -377,10 +363,10 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
               }}
             >
               <h3 style={{ fontSize: '8px', margin: '0 0 2px 0', fontWeight: 'bold' }}>TOTAL USD</h3>
-              <div className="summary-value" style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0' }}>$ {((subtotalesCalculados.total_monto_bs + subtotalesCalculados.total_monto_dolares * bdvPrice) / bdvPrice).toFixed(2)}</div>
+              <div className="summary-value" style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0' }}>$ {subtotalesCalculados.total_monto_dolares.toFixed(2)}</div>
             </div>
-            
-            <div 
+
+            <div
               className="summary-box bolivares"
               style={{
                 backgroundColor: '#d1ecf1',
@@ -391,12 +377,12 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
               }}
             >
               <h3 style={{ fontSize: '8px', margin: '0 0 2px 0', fontWeight: 'bold' }}>TOTAL BS</h3>
-              <div className="summary-value" style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0' }}>Bs. {((subtotalesCalculados.total_monto_bs + subtotalesCalculados.total_monto_dolares * bdvPrice)).toFixed(2)}</div>
+              <div className="summary-value" style={{ fontSize: '10px', fontWeight: 'bold', margin: '2px 0' }}>Bs. {subtotalesCalculados.total_monto_bs.toFixed(2)}</div>
             </div>
           </div>
         </div>
-        
-        <div 
+
+        <div
           style={{
             textAlign: 'right',
             fontSize: '8px',
@@ -407,8 +393,8 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
         >
           <strong>Fecha de generación:</strong> {obtenerFechaActual()}
         </div>
-        
-        <div 
+
+        <div
           className="footer"
           style={{
             backgroundImage: `url(${bgB})`,
@@ -431,11 +417,11 @@ const montoBs = order?.pagos.reduce((sum: number, p: any) => {
             bottom: '0'
           }}
         >
-          <img 
-              src={bgB}
-              alt={`Logo ${empresa}`} 
-              style={{ width: '100%', height: '10.5rem', position: 'absolute', bottom: '0', left: '0', zIndex: -1, }} 
-            />
+          <img
+            src={bgB}
+            alt={`Logo ${empresa}`}
+            style={{ width: '100%', height: '10.5rem', position: 'absolute', bottom: '0', left: '0', zIndex: -1, }}
+          />
           <p style={{ marginTop: '3rem', fontSize: '14px' }}>
             Reporte generado automáticamente - {empresa} &copy; {año}
           </p>

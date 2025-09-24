@@ -125,7 +125,7 @@ export default function Dashboard() {
     return Object.entries(statusCounts).map(([name, value]) => ({ name, value }));
   }, [orders]);
 
-  const COLORS = { "Pedido en verificacion de pago": "#FFBB28", "Pedido pagado": "#00C49F", "pagado": "#00C49F", "Pedido en proceso de empaquetado": "#0088FE", "Pedido enviado": "#82ca9d", "cancelado": "#FF8042", "Entregado": "#28a745", "Desconocido": "#b0b0b0" };
+  const COLORS = {"Disponible para entregar": "#8884d8","Pedido en verificacion de pago": "#FFBB28", "Pedido pagado": "#00C49F", "pagado": "#00C49F", "Pedido en proceso de empaquetado": "#0088FE", "Pedido enviado": "#82ca9d", "cancelado": "#FF8042", "Entregado": "#28a745", "Desconocido": "#b0b0b0" };
   const FALLBACK_COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'];
 
   return (
