@@ -95,7 +95,9 @@ const Orders = () => {
         { value: "todos", label: "Todos" },
         { value: "Pedido en verificacion de pago", label: "Pedido en verificación de pago" },
         { value: "Pedido en proceso de empaquetado", label: "Pedido en proceso de empaquetado" },
-        { value: "Pedido enviado", label: "Pedido enviado" }
+        { value: "Disponible para entregar", label: "Disponible para entregar"},
+        { value: "Pedido enviado", label: "Pedido enviado" },
+        
     ];
 
     useEffect(() => {

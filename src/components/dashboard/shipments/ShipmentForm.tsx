@@ -389,7 +389,12 @@ export default function ShipmentForm() {
               description: "El envío ha sido actualizado correctamente y el pedido marcado como enviado",
             });
           }
-        } else {
+        } else if (values.metodoDeEntrega === "Retiro en tienda") {
+          await orderService.updateOrder(values.pedidoId, {
+              estado: "Disponible para entregar",
+            });
+        }  else {
+          
           toast({
             title: "Envío actualizado",
             description: "El envío ha sido actualizado correctamente",
@@ -433,6 +438,13 @@ export default function ShipmentForm() {
           formData
         );
 
+              // 1. Actualizar el estado del pedido a "cancelado"
+              const updatedOrder = await orderService.updateOrder(Number(id), {
+                estado: "Cancelado",
+              });
+              
+              console.log("Pedido actualizado:", updatedOrder);
+
         // Validar número de guía antes de cambiar estado para envío nacional
         if (values.metodoDeEntrega === "Envio nacional") {
           if (!values.numeroDeGuia || values.numeroDeGuia.trim().length === 0) {
@@ -449,6 +461,10 @@ export default function ShipmentForm() {
               description: "El envío ha sido creado con todos los datos y el pedido marcado como enviado",
             });
           }
+        } else if (values.metodoDeEntrega === "Retiro en tienda") {
+          await orderService.updateOrder(values.pedidoId, {
+              estado: "Disponible para entregar",
+            });
         } else {
           toast({
             title: "Envío creado",
