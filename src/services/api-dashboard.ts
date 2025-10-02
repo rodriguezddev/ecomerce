@@ -572,8 +572,7 @@ export const orderService = {
 
       const response = await fetch(
         `${
-          import.meta.env.VITE_API_URL || "http://localhost:3000"
-        }pedidos/${id}`,
+          import.meta.env.VITE_API_URL}pedidos/${id}`,
         {
           method: "PATCH",
           headers: {
@@ -600,7 +599,6 @@ export const orderService = {
           responseData.body.detail &&
           typeof responseData.body.detail === "string"
         ) {
-          // Alternative common error field
           errorMessages = responseData.body.detail;
         } else {
           errorMessages = ["Error desconocido al actualizar el envío"];
@@ -609,7 +607,7 @@ export const orderService = {
         throw new Error(formatErrorMessage(errorMessages));
       }
 
-       return responseData
+       return response
     } catch (error) {
       console.error("Error updating order:", error);
       throw error;

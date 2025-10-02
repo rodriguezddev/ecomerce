@@ -439,8 +439,8 @@ export default function ShipmentForm() {
         );
 
               // 1. Actualizar el estado del pedido a "cancelado"
-              const updatedOrder = await orderService.updateOrder(Number(id), {
-                estado: "Cancelado",
+              const updatedOrder = await orderService.updateOrder(values.pedidoId, {
+                estado: "Disponible para entregar",
               });
               
               console.log("Pedido actualizado:", updatedOrder);
