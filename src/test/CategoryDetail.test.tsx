@@ -1,4 +1,4 @@
-// src/components/categories/CategoryDetail.test.tsx
+
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import '@testing-library/jest-dom'; // Para los matchers de DOM

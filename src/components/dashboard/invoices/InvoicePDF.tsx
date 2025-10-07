@@ -1,5 +1,5 @@
 import { formatDate } from "@/lib/utils";
-import { Pedido } from "@/types"; // Asegúrate de definir estos tipos
+import { Pedido } from "@/types";
 import bgT from '../../../assets/bg-t.png';
 import bgB from '../../../assets/bg-b.png';
 import logoBlanco from '../../../assets/M&C7_logo_blanco.png';
@@ -13,29 +13,47 @@ interface InvoicePDFProps {
 }
 
 export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
+  // Calcular subtotal sin descuentos (precio original)
   const calculateSubtotal = () => {
     if (!invoiceDetails[0]?.items) return 0;
     return invoiceDetails[0].items.reduce((sum, item) => {
-      const precioConDescuento = item.producto.descuento
-        ? item.producto.precio * (1 - item.producto.descuento / 100)
-        : item.producto.precio;
-      return sum + (item.cantidad * precioConDescuento);
+      return sum + (item.cantidad * item.producto.precio);
+    }, 0);
+  };
+
+  // Calcular total con descuentos aplicados
+  const calculateTotal = () => {
+    if (!invoiceDetails[0]?.items) return 0;
+    return invoiceDetails[0].items.reduce((sum, item) => {
+      // Usar precioConDescuento si está disponible, sino usar precio normal
+      const precioFinal = item.producto.precioConDescuento || item.producto.precio;
+      return sum + (item.cantidad * precioFinal);
     }, 0);
   };
 
   const subtotal = calculateSubtotal();
+  const total = calculateTotal();
+  
+  // Calcular el total de descuentos aplicados
   const totalDescuentos = invoiceDetails[0]?.items?.reduce((sum, item) => {
-    return item.producto.descuento
-      ? sum + (item.cantidad * item.producto.precio * item.producto.descuento / 100)
-      : sum;
+    if (item.producto.precioConDescuento) {
+      const descuentoPorUnidad = item.producto.precio - item.producto.precioConDescuento;
+      return sum + (item.cantidad * descuentoPorUnidad);
+    }
+    return sum;
   }, 0) || 0;
 
-  const total = subtotal;
+  // Calcular porcentaje de descuento para mostrar
+  const calcularPorcentajeDescuento = (producto: any) => {
+    if (producto.precioConDescuento && producto.precio > 0) {
+      return ((producto.precio - producto.precioConDescuento) / producto.precio * 100).toFixed(1);
+    }
+    return "0";
+  };
 
   return (
-    <div className="pdf-container" style={{ fontFamily: 'Arial, sans-serif' }}>
+    <div className="pdf-container" style={{ fontFamily: 'Arial, sans-serif', position: 'relative', minHeight: '100vh' }}>
       {/* Header con imagen */}
-     {/* Header con imagen */}
       <div style={{
         position: 'relative',
         height: '180px',
@@ -46,7 +64,6 @@ export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
         color: 'white',
         overflow: 'hidden'
       }}>
-        {/* Imagen de fondo */}
         <img 
           src={bgT}
           alt="Header background"
@@ -61,7 +78,7 @@ export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
           }}
         />
         
-        <div >
+        <div>
           <h2 style={{ fontSize: '16px', margin: 0 }}>Repuestos y Accesorios M&C7, C.A</h2>
           <p style={{ fontSize: '12px', margin: '4px 0' }}>RIF: J-50325744-7</p>
           <p style={{ fontSize: '12px', margin: '4px 0' }}>Naguanagua, Carabobo</p>
@@ -96,7 +113,7 @@ export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
       </div>
 
       {/* Contenido principal */}
-      <div style={{ padding: '20px' }}>
+      <div style={{ padding: '20px', paddingBottom: '150px' }}>
         <h1 style={{ 
           textAlign: 'center', 
           fontSize: '18px',
@@ -148,7 +165,9 @@ export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
             </h3>
             <div>
               <p style={{ margin: '4px 0' }}><strong>Pedido #:</strong> {invoiceDetails[0]?.id}</p>
-              <p style={{ margin: '4px 0' }}><strong>Fecha:</strong> {invoiceDetails[0]?.fecha}</p>
+              {invoiceDetails[0]?.fecha && (
+                <p style={{ margin: '4px 0' }}><strong>Fecha:</strong> {formatDate(invoiceDetails[0]?.fecha)}</p>
+              )}
               <p style={{ margin: '4px 0' }}>
                 <strong>Pago:</strong> {invoiceDetails[0]?.pagos?.map(pago => pago.nombreFormaDePago).join(', ') || 'N/A'}
               </p>
@@ -206,9 +225,8 @@ export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
           </thead>
           <tbody>
             {invoiceDetails[0]?.items?.map((item, index) => {
-              const precioConDescuento = item.producto.descuento
-                ? item.producto.precio * (1 - item.producto.descuento / 100)
-                : item.producto.precio;
+              const precioFinal = item.producto.precioConDescuento || item.producto.precio;
+              const porcentajeDescuento = calcularPorcentajeDescuento(item.producto);
               
               return (
                 <tr 
@@ -220,12 +238,19 @@ export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
                 >
                   <td style={{ padding: '8px' }}>{item.producto.nombre}</td>
                   <td style={{ padding: '8px', textAlign: 'center' }}>{item.cantidad}</td>
-                  <td style={{ padding: '8px', textAlign: 'right' }}>${item.producto.precio.toFixed(2)}</td>
                   <td style={{ padding: '8px', textAlign: 'right' }}>
-                    {item.producto.descuento ? `${item.producto.descuento}%` : '-'}
+                    ${item.producto.precio.toFixed(2)}
+                    {item.producto.precioConDescuento && item.producto.precioConDescuento < item.producto.precio && (
+                      <div style={{ fontSize: '10px', color: '#666' }}>
+                        ${item.producto.precioConDescuento.toFixed(2)} final
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '8px', textAlign: 'right' }}>
-                    ${(item.cantidad * precioConDescuento).toFixed(2)}
+                    {porcentajeDescuento !== "0" ? `${porcentajeDescuento}%` : '-'}
+                  </td>
+                  <td style={{ padding: '8px', textAlign: 'right' }}>
+                    ${(item.cantidad * precioFinal).toFixed(2)}
                   </td>
                 </tr>
               );
@@ -243,26 +268,27 @@ export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
             width: '40%',
             fontSize: '12px'
           }}>
+            <div style={{ 
+              display: 'flex',
+              justifyContent: 'space-between',
+              marginBottom: '8px'
+            }}>
+              <span>Subtotal sin descuentos:</span>
+              <span>${subtotal.toFixed(2)}</span>
+            </div>
+            
             {totalDescuentos > 0 && (
               <div style={{ 
                 display: 'flex',
                 justifyContent: 'space-between',
-                marginBottom: '8px'
+                marginBottom: '8px',
+                color: 'green'
               }}>
-                <span>Descuentos:</span>
-                <span style={{ color: 'green' }}>-${totalDescuentos.toFixed(2)}</span>
+                <span>Total descuentos aplicados:</span>
+                <span>-${totalDescuentos.toFixed(2)}</span>
               </div>
             )}
-            <div style={{ 
-              display: 'flex',
-              justifyContent: 'space-between',
-              marginBottom: '8px',
-              borderTop: '1px solid #ddd',
-              paddingTop: '8px'
-            }}>
-              <span>Subtotal:</span>
-              <span>${subtotal.toFixed(2)}</span>
-            </div>
+            
             <div style={{ 
               display: 'flex',
               justifyContent: 'space-between',
@@ -280,36 +306,29 @@ export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
       </div>
 
       {/* Footer con imagen */}
-      <div className="footer" style={{ 
-                    backgroundPosition: 'center',
-                    backgroundRepeat: 'no-repeat',
-                    backgroundSize: 'cover',
-                    color: 'white',
-                    padding: '4px',
-                    textAlign: 'center',
-                    borderRadius: '0 0 3px 3px',
-                    fontSize: '7px',
-                    color: '#777',
-                    width: '100%',
-                    height: '12.5rem',
-                    display: 'flex',
-                    alignItems: 'end',
-                    justifyContent: 'center',
-                    marginTop: '20px',
-                    position: 'absolute',
-                    bottom: '0'
+      <div style={{ 
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        width: '100%',
+        height: '150px',
+        display: 'flex',
+        alignItems: 'flex-end',
+        justifyContent: 'center',
+        paddingBottom: '20px'
       }}>
         <img 
           src={bgB}
-           alt="Background footer" 
-            style={{ 
-              width: '100%', 
-              height: '100%', 
-              position: 'absolute', 
-              bottom: '0', 
-              left: '0', 
-              zIndex: -1, 
-            }} 
+          alt="Background footer" 
+          style={{ 
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            zIndex: -1
+          }} 
         />
         <p style={{ 
           color: '#777',
