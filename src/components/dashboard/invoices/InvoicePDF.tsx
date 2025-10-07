@@ -1,5 +1,8 @@
 import { formatDate } from "@/lib/utils";
 import { Pedido } from "@/types"; // Asegúrate de definir estos tipos
+import bgT from '../../../assets/bg-t.png';
+import bgB from '../../../assets/bg-b.png';
+import logoBlanco from '../../../assets/M&C7_logo_blanco.png';
 
 interface InvoicePDFProps {
   invoice: {
@@ -45,7 +48,7 @@ export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
       }}>
         {/* Imagen de fondo */}
         <img 
-          src="/bg-t.png" 
+          src={bgT}
           alt="Header background"
           style={{
             position: 'absolute',
@@ -65,7 +68,7 @@ export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
         </div>
         
         <img 
-          src="/logo_blanco.png" 
+          src={logoBlanco}
           alt="Logo" 
           style={{ 
             width: '150px', 
@@ -277,29 +280,36 @@ export const InvoicePDF = ({ invoice, invoiceDetails }: InvoicePDFProps) => {
       </div>
 
       {/* Footer con imagen */}
-      <div style={{ 
-        position: 'relative',
-        height: '180px',
-        display: 'flex',
-        alignItems: 'flex-end',
-        justifyContent: 'center',
-        paddingBottom: '10px',
-        marginTop: '20px',
-        overflow: 'hidden',
-        bottom: 0,
+      <div className="footer" style={{ 
+                    backgroundPosition: 'center',
+                    backgroundRepeat: 'no-repeat',
+                    backgroundSize: 'cover',
+                    color: 'white',
+                    padding: '4px',
+                    textAlign: 'center',
+                    borderRadius: '0 0 3px 3px',
+                    fontSize: '7px',
+                    color: '#777',
+                    width: '100%',
+                    height: '12.5rem',
+                    display: 'flex',
+                    alignItems: 'end',
+                    justifyContent: 'center',
+                    marginTop: '20px',
+                    position: 'absolute',
+                    bottom: '0'
       }}>
         <img 
-          src="/bg-b.png" 
-          alt="Footer background"
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: -1
-          }}
+          src={bgB}
+           alt="Background footer" 
+            style={{ 
+              width: '100%', 
+              height: '100%', 
+              position: 'absolute', 
+              bottom: '0', 
+              left: '0', 
+              zIndex: -1, 
+            }} 
         />
         <p style={{ 
           color: '#777',
