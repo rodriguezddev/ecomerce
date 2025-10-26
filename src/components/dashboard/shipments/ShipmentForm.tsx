@@ -438,12 +438,12 @@ export default function ShipmentForm() {
           formData
         );
 
-              // 1. Actualizar el estado del pedido a "cancelado"
-              const updatedOrder = await orderService.updateOrder(values.pedidoId, {
-                estado: "Disponible para entregar",
-              });
+              // // 1. Actualizar el estado del pedido a "cancelado"
+              // const updatedOrder = await orderService.updateOrder(values.pedidoId, {
+              //   estado: "Disponible para entregar",
+              // });
               
-              console.log("Pedido actualizado:", updatedOrder);
+              // console.log("Pedido actualizado:", updatedOrder);
 
         // Validar número de guía antes de cambiar estado para envío nacional
         if (values.metodoDeEntrega === "Envio nacional") {

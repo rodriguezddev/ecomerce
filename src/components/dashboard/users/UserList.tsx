@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { orderService } from "@/services/api-extensions";
 import { userService } from "@/services/api";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,17 @@ export default function UserList() {
     queryFn: userService.getUsers,
   });
 
+    const {
+      data: orders = [],
+      error,
+    } = useQuery({
+      queryKey: ["orders"],
+      queryFn: async () => {
+        const response = await orderService.getOrders();
+        return response || [];
+      },
+    });
+
   // Pagination logic
   const filteredUsers = data?.filter((user: any) => 
     user.username?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -60,10 +72,29 @@ export default function UserList() {
     setCurrentPage(1); // Reset to first page when changing items per page
   };
 
-  const confirmDelete = (id: number) => {
-    setUserToDelete(id);
-    setIsDeleteDialogOpen(true);
-  };
+const confirmDelete = (user: any) => { // Agregué el tipo 'any' para evitar errores de TypeScript en el ejemplo.
+  // Primero, asegúrate de que el modal de eliminación esté cerrado ANTES de reabrirlo o mostrar el toast.
+  // Esto es vital para manejar el estado correctamente, especialmente si se quedó abierto del intento anterior.
+  setIsDeleteDialogOpen(false); // Cierra cualquier modal abierto.
+  setUserToDelete(null); // Limpia el usuario a eliminar.
+
+  // 1. Verificar si existe AL MENOS UNA orden para el perfil con ese 'id'.
+  const hasAssociatedOrders = orders.some(order => order.perfil.id === user.perfil.id);
+
+  if (hasAssociatedOrders) {
+    // 2. Si tiene órdenes, mostrar la notificación de error.
+    toast({
+      title: "Este usuario tiene órdenes asociadas",
+      description: "El usuario no puede ser eliminado porque tiene órdenes vinculadas.",
+      variant: "destructive", // Opcional, pero mejora la UX.
+    });
+    return; // Termina la función aquí.
+  }
+
+  // 3. Si NO tiene órdenes, establecer el usuario para eliminar y ABRIR el diálogo.
+  setUserToDelete(user.id);
+  setIsDeleteDialogOpen(true);
+};
 
   const executeDelete = async () => {
     if (userToDelete === null) return;
@@ -199,7 +230,7 @@ export default function UserList() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => confirmDelete(user.id)}
+                                onClick={() => confirmDelete(user)}
                               >
                                 <Trash2 className="h-4 w-4" />
                               </Button>

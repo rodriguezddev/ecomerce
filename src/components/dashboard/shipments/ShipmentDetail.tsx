@@ -74,7 +74,7 @@ export default function ShipmentDetail() {
           <Button asChild>
             <Link to={`/dashboard/envios/editar/${shipment.id}`}>
               <Edit className="mr-2 h-4 w-4" />
-              Agregar número de guía
+              Actualizar envío
             </Link>
           </Button>
         </div>
