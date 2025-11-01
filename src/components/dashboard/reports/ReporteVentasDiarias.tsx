@@ -155,7 +155,7 @@ const ReporteVentasDiarias: React.FC<ReporteVentasDiariasProps> = ({
       const efectivo = order?.pagos.find((p: any) => p.nombreFormaDePago === 'EFECTIVO');
 
       const pagoMovilMonto = pagoMovil ? pagoMovil.monto : 0;
-      const transferenciaMonto = transferencia ? transferenciaMonto.monto : 0;
+      const transferenciaMonto = transferencia ? transferencia.monto : 0;
       const zelleMonto = zelle ? zelle.monto : 0;
       const efectivoMonto = efectivo ? efectivo.monto : 0;
 
