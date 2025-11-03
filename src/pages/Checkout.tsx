@@ -369,7 +369,7 @@ const handleVoucherChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     try {
       // Calculate order total
       const subtotal = getCartTotal();
-      const orderTotal = selectedPaymentMethod.tipo === "TRANSFER" ||  selectedPaymentMethod.tipo  === "PAGOMOVIL" ? subtotal * bdvPrice : subtotal;
+      const orderTotal = selectedPaymentMethod.tipo === "TRANSFERENCIA" ||  selectedPaymentMethod.tipo  === "PAGOMOVIL" ? subtotal * bdvPrice : subtotal;
 
       // Create order
       const orderItems = cart.map(item => ({
