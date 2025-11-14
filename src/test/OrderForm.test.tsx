@@ -59,13 +59,7 @@ describe("OrderForm", () => {
     expect(titleElement).toBeInTheDocument();
   });
 
-  test("9. Debería mostrar el botón 'Reactivar Pedido' si el estado del pedido es 'Cancelado'.", async () => {
-    render(<CategoryDetail />);
-    const titleElement = screen.getByText(/Category Detail Page/i);
-    expect(titleElement).toBeInTheDocument();
-  });
-
-  test("10. Debería abrir el `CancelOrderDialog` al cambiar el 'Estado' a 'Cancelado' en modo edición.", () => {
+  test("9. Debería abrir el `CancelOrderDialog` al cambiar el 'Estado' a 'Cancelado' en modo edición.", () => {
     render(<CategoryDetail />);
     const titleElement = screen.getByText(/Category Detail Page/i);
     expect(titleElement).toBeInTheDocument();

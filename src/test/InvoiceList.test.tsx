@@ -64,10 +64,4 @@ describe("InvoiceList", () => {
     const titleElement = screen.getByText(/Category Detail Page/i);
     expect(titleElement).toBeInTheDocument();
   });
-
-  test("10. Muestra el cuadro de diálogo de confirmación al intentar eliminar un recibo.", () => {
-    render(<CategoryDetail />);
-    const titleElement = screen.getByText(/Category Detail Page/i);
-    expect(titleElement).toBeInTheDocument();
-  });
 });

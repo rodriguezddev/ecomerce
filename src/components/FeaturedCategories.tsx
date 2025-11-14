@@ -94,12 +94,7 @@ const FeaturedCategories = () => {
       <h2 className="section-title text-2xl font-bold mb-6">Categorías</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
         {displayCategories.map((category) => (
-          <Link
-            to={`/categoria/${category.id}`}
-            key={category.id}
-            className="bg-white border border-gray-200 rounded-md overflow-hidden shadow-sm hover:shadow-md transition-shadow group"
-          >
-            <div className="p-4 text-center">
+           <div key={category.id} className="p-4 text-center">
               <h3 className="font-semibold text-gray-900 group-hover:text-primary transition-colors">
                 {category.nombre}
               </h3>
@@ -107,7 +102,6 @@ const FeaturedCategories = () => {
                 {typeof category.productos === 'object' && category.productos ? category.productos.length : '0'} Productos
               </p>
             </div>
-          </Link>
         ))}
       </div>
     </section>
